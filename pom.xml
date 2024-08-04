@@ -8,11 +8,11 @@
 		<version>3.3.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.backend</groupId>
-	<artifactId>ecommerce</artifactId>
+	<groupId>com.example</groupId>
+	<artifactId>gameStore</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>ecommerce</name>
-	<description>An e-commerce REST server</description>
+	<name>gameStore</name>
+	<description>Backend projects for a game store app.</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -27,7 +27,7 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>17</java.version>
+		<java.version>22</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
