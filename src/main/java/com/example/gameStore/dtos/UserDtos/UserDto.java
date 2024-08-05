@@ -1,4 +1,4 @@
-package com.example.gameStore.entities;
+package com.example.gameStore.dtos.UserDtos;
 
 import com.example.gameStore.enums.UserRole;
 import com.example.gameStore.enums.UserStatus;
@@ -16,19 +16,15 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
-public class User {
+public class UserDto {
     private UUID id;
     private String username;
     private String email;
-    private String password;
     private Timestamp createdAt;
     private UserRole role;
     private LocalDate birthDate;
-    private Timestamp passwordChangedAt;
-    private String passwordResetToken;
-    private Timestamp passwordResetExpires;
-    private String confirmEmailToken;
     private UserStatus activeStatus;
     private String address;
+    private String postalCode;
     private String phone;
 }
