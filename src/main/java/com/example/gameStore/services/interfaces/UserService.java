@@ -11,10 +11,8 @@ import java.util.UUID;
 public interface UserService {
     List<UserDto> getUsers();
     Optional<UserDto> getUserById(UUID id);
-    UserDto createUser(CreateUserRequestDto newUser);
+    Optional<UserDto> createUser(CreateUserRequestDto newUser);
     boolean deleteUser(UUID id);
     UserDto updateUser(UpdateUserRequestDto updateUser);
     Optional<UserDto> getCurrentUser();
-    UserDto updateCurrentUser(UpdateUserRequestDto updateUser);
-    boolean deleteCurrentUser();
 }

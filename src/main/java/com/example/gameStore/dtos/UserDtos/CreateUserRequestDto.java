@@ -16,4 +16,12 @@ public class CreateUserRequestDto {
     private String password;
     private String confirmPassword;
     private UserRole role;
+
+    public boolean isValidEmail() {
+        return email != null && email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+    }
+
+    public boolean isValidPassword() {
+        return  password != null && password.length() > 7 && password.equals(confirmPassword);
+    }
 }
