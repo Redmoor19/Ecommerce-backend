@@ -29,7 +29,6 @@ public class UserServiceImpl implements UserService {
     }
 
     public Optional<UserDto> createUser(CreateUserRequestDto newUser) {
-        if (!(newUser.isValidEmail() && newUser.isValidPassword())) return Optional.empty();
         User createUser = modelMapper.map(newUser, User.class);
         createUser.setId(UUID.randomUUID());
         createUser.setCreatedAt(new Timestamp(System.currentTimeMillis()));
