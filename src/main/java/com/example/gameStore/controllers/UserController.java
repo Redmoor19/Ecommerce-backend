@@ -54,7 +54,7 @@ public class UserController {
     @PatchMapping("/{userId}")
     public ResponseEntity<UserDto> updateUser(@PathVariable String userId, @RequestBody UpdateUserRequestDto updateUserDto) {
         boolean matchId = updateUserDto.getId().equals(UUID.fromString(userId));
-        if(!matchId) return ResponseEntity.badRequest().build();
+        if (!matchId) return ResponseEntity.badRequest().build();
         UserDto updatedUser = userService.updateUser(updateUserDto);
         return ResponseEntity.ok(updatedUser);
     }
@@ -67,9 +67,13 @@ public class UserController {
     }
 
     @DeleteMapping("/delete-me")
-    public boolean removeLoggedInUser() {
+    public ResponseEntity<Void> removeLoggedInUser() {
         UUID userId = UUID.randomUUID();
-        return userService.deleteUser(userId);
+        if (userService.deleteUser(userId)) {
+            return ResponseEntity.ok().build();
+
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     @PatchMapping("/update-me")
