@@ -9,39 +9,39 @@ import java.util.Optional;
 
 public interface GameService {
 
-    public List<GameDto> findAllGames();
+    List<GameDto> findAllGames();
 
-    public Optional<GameDto> getGameById(String id);
+    Optional<GameDto> getGameById(String id);
 
-    public Optional<GameDto> createGame(GameDto gameDto);
+    Optional<GameDto> createGame(GameDto gameDto);
 
-    public Optional<GameDto> updateGame(String id, GameDto gameDto);
+    Optional<GameDto> updateGame(String id, GameDto gameDto);
 
-    public boolean deleteGame(String id);
+    boolean deleteGame(String id);
 
-    public List<String> getAllGenres();
+    List<String> getAllGenres();
 
-    public List<GameDto> getGamesByGenre(String genre);
+    List<GameDto> getGamesByGenre(String genre);
 
-    public List<GameDto> getCurrentUserGames();
+    List<GameDto> getCurrentUserGames();
 
-    public List<GameDto> getCurrentUserFavouriteGames();
+    List<GameDto> getCurrentUserFavouriteGames();
 
-    public Optional<GameDto> addCurrentUserFavoriteGame(String gameId);
+    Optional<GameDto> addCurrentUserFavoriteGame(String gameId);
 
-    public boolean deleteCurrentUserFavoriteGame(String gameId);
+    boolean deleteFavoriteGameOfCurrentUser(String gameId);
 
-    public List<ReviewDto> getGameReviews(String gameId);
+    List<ReviewDto> getGameReviews(String gameId);
 
-    public Optional<ReviewDto> createReview(String gameId);
+    Optional<ReviewDto> createReview(String gameId);
 
-    public Optional<ReviewDto> updateReview(String gameId, String reviewId);
+    Optional<ReviewDto> updateReview(String gameId, String reviewId);
 
-    public boolean deleteReview(String gameId, String reviewId);
+    boolean deleteReview(String gameId, String reviewId);
 
-    public Optional<ReviewDto> getReviewById(String gameId, String reviewId);
+    Optional<ReviewDto> getReviewById(String gameId, String reviewId);
 
-    public Optional<KeyDto> addKeyToGame(String gameId);
+    Optional<KeyDto> addKeyToGame(String gameId);
 
-    public Optional<Integer> countGameKeys(String gameId);
+    Optional<Integer> countGameKeys(String gameId);
 }

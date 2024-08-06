@@ -123,7 +123,6 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Optional<GameDto> addCurrentUserFavoriteGame(String gameId) {
-        //Adding an existing game to favorites;
         System.out.println("============================" + gameId + "============================");
         return Optional.of(new GameDto(UUID.randomUUID(), "Cyber City", List.of(Genre.ACTION), 92,
                 "http://example.com/thumb5.jpg", List.of("http://example.com/image5.jpg"),
@@ -132,8 +131,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public boolean deleteCurrentUserFavoriteGame(String gameId) {
-        //Deleting a game from favorites;
+    public boolean deleteFavoriteGameOfCurrentUser(String gameId) {
         System.out.println("============================" + gameId + "============================");
         return true;
     }

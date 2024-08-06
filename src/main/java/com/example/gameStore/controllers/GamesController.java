@@ -108,7 +108,7 @@ public class GamesController {
 
     @DeleteMapping("users/me/games/favourites/{gameId}")
     public ResponseEntity<GameDto> deleteCurrentUserFavoriteGame(@PathVariable String gameId) {
-        if (gameService.deleteCurrentUserFavoriteGame(gameId)) {
+        if (gameService.deleteFavoriteGameOfCurrentUser(gameId)) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
