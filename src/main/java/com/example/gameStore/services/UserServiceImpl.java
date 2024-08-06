@@ -25,7 +25,8 @@ public class UserServiceImpl implements UserService {
     }
 
     public Optional<UserDto> getUserById(UUID id) {
-        return Optional.empty();
+        Optional<User> foundUser = users.stream().filter(user -> user.getId().equals(id)).findFirst();
+        return foundUser.map(user -> modelMapper.map(user, UserDto.class));
     }
 
     public Optional<UserDto> createUser(CreateUserRequestDto newUser) {
@@ -42,11 +43,14 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
-    public UserDto updateUser(UpdateUserRequestDto updateUser) {
-        return null;
+    public Optional<UserDto> updateUser(UpdateUserRequestDto updateUserDto) {
+        User updateUser = modelMapper.map(updateUserDto, User.class);
+        users = users.stream().map(user ->
+                user.getId().equals(updateUser.getId()) ? updateUser : user
+        ).toList();
+        return getUserById(updateUser.getId());
     }
 
-    @Override
     public Optional<UserDto> getCurrentUser() {
         return Optional.empty();
     }

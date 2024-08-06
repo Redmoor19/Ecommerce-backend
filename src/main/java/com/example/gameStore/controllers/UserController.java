@@ -36,14 +36,13 @@ public class UserController {
     @GetMapping("/{userId}")
     public ResponseEntity<UserDto> findUserById(@PathVariable String userId) {
         Optional<UserDto> optUserDto = userService.getUserById(UUID.fromString(userId));
-        optUserDto.ifPresent(ResponseEntity::ok);
-        return ResponseEntity.notFound().build();
+        return optUserDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<UserDto> addUser(@RequestBody CreateUserRequestDto createUserDto) {
-        Optional<UserDto> createdUser = userService.createUser(createUserDto);
-        return createdUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        Optional<UserDto> optCreatedUser = userService.createUser(createUserDto);
+        return optCreatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{userId}")
@@ -55,15 +54,14 @@ public class UserController {
     public ResponseEntity<UserDto> updateUser(@PathVariable String userId, @RequestBody UpdateUserRequestDto updateUserDto) {
         boolean matchId = updateUserDto.getId().equals(UUID.fromString(userId));
         if (!matchId) return ResponseEntity.badRequest().build();
-        UserDto updatedUser = userService.updateUser(updateUserDto);
-        return ResponseEntity.ok(updatedUser);
+        Optional<UserDto> optUpdatedUser = userService.updateUser(updateUserDto);
+        return optUpdatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @GetMapping("/users/me")
     public ResponseEntity<UserDto> findLoggedUser() {
         Optional<UserDto> optLoggedInUserDto = userService.getCurrentUser();
-        optLoggedInUserDto.ifPresent(ResponseEntity::ok);
-        return ResponseEntity.notFound().build();
+        return optLoggedInUserDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @DeleteMapping("/delete-me")
@@ -78,7 +76,7 @@ public class UserController {
 
     @PatchMapping("/update-me")
     public ResponseEntity<UserDto> updateLoggedInUser(@RequestBody UpdateUserRequestDto updateUserDto) {
-        UserDto updatedUser = userService.updateUser(updateUserDto);
-        return ResponseEntity.ok(updatedUser);
+        Optional<UserDto> updatedUser = userService.updateUser(updateUserDto);
+        return updatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
     }
 }
