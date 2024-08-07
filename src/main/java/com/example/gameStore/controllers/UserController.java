@@ -26,7 +26,7 @@ import java.util.UUID;
 public class UserController {
 
     @Autowired
-    private UserServiceImpl userService;
+    private final UserServiceImpl userService;
 
     @GetMapping
     public List<UserDto> findUsers() {

@@ -12,7 +12,7 @@ public enum UserStatus {
     }
 
     public static boolean isValidStatus(String checkingStatus) {
-        for (UserStatus status: UserStatus.values()) {
+        for (UserStatus status : UserStatus.values()) {
             if (status.name.equalsIgnoreCase(checkingStatus)) return true;
         }
         return false;

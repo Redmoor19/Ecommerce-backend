@@ -25,7 +25,7 @@ import java.util.UUID;
 public class AuthController {
 
     @Autowired
-    private AuthServiceImpl authService;
+    private final AuthServiceImpl authService;
 
     @PostMapping("auth/signup")
     public ResponseEntity<LoggedInUserDto> signUpUser(@RequestBody CreateUserRequestDto createUserRequestDto) {

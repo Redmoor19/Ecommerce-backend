@@ -18,7 +18,7 @@ import java.util.UUID;
 @Service
 public class UserServiceImpl implements UserService {
     private List<User> users = new ArrayList<>();
-    ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper = new ModelMapper();
 
     public List<UserDto> getUsers() {
         return users.stream().map(user -> modelMapper.map(user, UserDto.class)).toList();
