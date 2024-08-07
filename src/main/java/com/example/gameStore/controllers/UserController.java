@@ -61,7 +61,7 @@ public class UserController {
         return optUpdatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
-    @GetMapping("/users/me")
+    @GetMapping("/me")
     public ResponseEntity<UserDto> findLoggedUser() {
         Optional<UserDto> optLoggedInUserDto = userService.getCurrentUser();
         return optLoggedInUserDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
