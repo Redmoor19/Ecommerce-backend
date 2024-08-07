@@ -9,6 +9,7 @@ import com.example.gameStore.dtos.UserDtos.UpdatePasswordRequestDto;
 import java.util.Optional;
 import java.util.UUID;
 
+
 public interface AuthService {
     public Optional<LoggedInUserDto> registerUser(CreateUserRequestDto newUser);
 

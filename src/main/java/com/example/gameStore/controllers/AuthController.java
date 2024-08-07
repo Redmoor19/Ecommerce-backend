@@ -5,7 +5,7 @@ import com.example.gameStore.dtos.UserDtos.LoggedInUserDto;
 import com.example.gameStore.dtos.UserDtos.LoginUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.ResetPasswordRequestDto;
 import com.example.gameStore.dtos.UserDtos.UpdatePasswordRequestDto;
-import com.example.gameStore.services.AuthServiceImpl;
+import com.example.gameStore.services.interfaces.AuthService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +25,7 @@ import java.util.UUID;
 public class AuthController {
 
     @Autowired
-    private final AuthServiceImpl authService;
+    private final AuthService authService;
 
     @PostMapping("auth/signup")
     public ResponseEntity<LoggedInUserDto> signUpUser(@RequestBody CreateUserRequestDto createUserRequestDto) {

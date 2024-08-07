@@ -3,7 +3,7 @@ package com.example.gameStore.controllers;
 import com.example.gameStore.dtos.UserDtos.CreateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UpdateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
-import com.example.gameStore.services.UserServiceImpl;
+import com.example.gameStore.services.interfaces.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +26,7 @@ import java.util.UUID;
 public class UserController {
 
     @Autowired
-    private final UserServiceImpl userService;
+    private final UserService userService;
 
     @GetMapping
     public List<UserDto> findUsers() {
