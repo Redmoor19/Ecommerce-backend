@@ -4,6 +4,7 @@ package com.example.gameStore.controllers;
 import com.example.gameStore.dtos.GameDto;
 import com.example.gameStore.dtos.KeyDto;
 import com.example.gameStore.dtos.ReviewDto;
+import com.example.gameStore.entities.Game;
 import com.example.gameStore.services.interfaces.GameService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +40,8 @@ public class GamesController {
     }
 
     @GetMapping("games/{id}")
-    public ResponseEntity<GameDto> getGameById(@PathVariable(required = true, name = "id") String id) {
-        Optional<GameDto> game = gameService.getGameById(id);
+    public ResponseEntity<Game> getGameById(@PathVariable(required = true, name = "id") String id) {
+        Optional<Game> game = gameService.getGameById(id);
         return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
