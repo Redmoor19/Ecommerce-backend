@@ -8,15 +8,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,7 +29,7 @@ public class Game {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "name", unique = true, nullable = false)
+    @Column(name = "name", unique = true, nullable = false, columnDefinition = "VARCHAR(50)")
     private String name;
 
     @Column(name = "genre", columnDefinition = "e_game_genre[]")
@@ -59,7 +56,7 @@ public class Game {
     @Column(name = "player_support", columnDefinition = "e_player_support[]")
     private List<PlayerSupport> playerSupport;
 
-    @Column(name = "price")
+    @Column(name = "price", columnDefinition = "NUMERIC(10, 2)")
     private float price;
 
     @Column(name = "description", nullable = false)
@@ -71,6 +68,6 @@ public class Game {
     @Column(name = "is_active")
     private boolean isActive;
 
-    @Column(name = "average_rating")
+    @Column(name = "average_rating", nullable = false, columnDefinition = "NUMERIC(2, 1) DEFAULT 0")
     private float rating;
 }
