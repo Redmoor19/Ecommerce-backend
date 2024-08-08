@@ -47,7 +47,7 @@ public class Game {
     @Column(name = "developer", nullable = false)
     private String developer;
 
-    @Column(name = "release_date", nullable = false, columnDefinition = "TIMESTAMPTZ")
+    @Column(name = "release_date", nullable = false, columnDefinition = "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP")
     private Timestamp releaseDate;
 
     @Column(name = "system_requirements", nullable = false)

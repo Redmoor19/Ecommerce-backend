@@ -1,7 +1,7 @@
 package com.example.gameStore.services.interfaces;
 
 import com.example.gameStore.dtos.GameDto;
-import com.example.gameStore.dtos.KeyDto;
+import com.example.gameStore.dtos.KeyCreationDto;
 import com.example.gameStore.dtos.ReviewDto;
 import com.example.gameStore.entities.Game;
 
@@ -42,7 +42,7 @@ public interface GameService {
 
     Optional<ReviewDto> getReviewById(String gameId, String reviewId);
 
-    Optional<KeyDto> addKeyToGame(String gameId);
+    Optional<KeyCreationDto> addKeyToGame(KeyCreationDto keyCreationDto);
 
     Optional<Integer> countGameKeys(String gameId);
 }

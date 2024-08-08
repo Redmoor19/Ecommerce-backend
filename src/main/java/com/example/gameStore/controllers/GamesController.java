@@ -2,7 +2,7 @@ package com.example.gameStore.controllers;
 
 
 import com.example.gameStore.dtos.GameDto;
-import com.example.gameStore.dtos.KeyDto;
+import com.example.gameStore.dtos.KeyCreationDto;
 import com.example.gameStore.dtos.ReviewDto;
 import com.example.gameStore.entities.Game;
 import com.example.gameStore.services.interfaces.GameService;
@@ -150,13 +150,13 @@ public class GamesController {
         return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping("games/{gameId}/keys")
-    public ResponseEntity<KeyDto> addKeyToGame(@PathVariable String gameId) {
-        Optional<KeyDto> key = gameService.addKeyToGame(gameId);
+    @PostMapping("games/keys")
+    public ResponseEntity<KeyCreationDto> addKeyToGame(@RequestBody KeyCreationDto keyCreationDto) {
+        Optional<KeyCreationDto> key = gameService.addKeyToGame(keyCreationDto);
         return key.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("games/{gameId}/keys")
+    @GetMapping("games/keys")
     public ResponseEntity<Integer> getGameKeysAmount(@PathVariable String gameId) {
         Optional<Integer> keysAmount = gameService.countGameKeys(gameId);
         return keysAmount.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());

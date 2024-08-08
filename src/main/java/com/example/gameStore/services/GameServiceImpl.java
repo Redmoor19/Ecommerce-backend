@@ -1,12 +1,14 @@
 package com.example.gameStore.services;
 
 import com.example.gameStore.dtos.GameDto;
-import com.example.gameStore.dtos.KeyDto;
+import com.example.gameStore.dtos.KeyCreationDto;
 import com.example.gameStore.dtos.ReviewDto;
 import com.example.gameStore.entities.Game;
+import com.example.gameStore.entities.Key;
 import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
 import com.example.gameStore.repositories.GameRepository;
+import com.example.gameStore.repositories.KeyRepository;
 import com.example.gameStore.services.interfaces.GameService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,8 @@ public class GameServiceImpl implements GameService {
     private final ModelMapper modelMapper = new ModelMapper();
     @Autowired
     private GameRepository gameRepository;
+    @Autowired
+    private KeyRepository keyRepository;
 
     @Override
     public List<GameDto> findAllGames() {
@@ -200,14 +204,16 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<KeyDto> addKeyToGame(String gameId) {
-        System.out.println("============================" + gameId + "============================");
-        return Optional.of(new KeyDto(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                new Date(),
-                UUID.fromString(gameId)
-        ));
+    public Optional<KeyCreationDto> addKeyToGame(KeyCreationDto keyCreationDto) {
+//        Key addKey = modelMapper.map(keyCreationDto, Key.class);
+        Game game = gameRepository.findById(keyCreationDto.getGameId())
+                .orElseThrow(() -> new RuntimeException("Game not found with ID: " + keyCreationDto.getGameId()));
+        Key key = new Key();
+        key.setValue(keyCreationDto.getValue());
+        key.setGame(game);
+//        System.out.println("Creating key is:\n" + addKey.toString());
+        keyRepository.save(key);
+        return Optional.of(modelMapper.map(key, KeyCreationDto.class));
     }
 
     @Override
