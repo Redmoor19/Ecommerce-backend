@@ -44,11 +44,9 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", columnDefinition = "VARCHAR(255) DEFAULT 'PROCESSING'")
-    //@Column(name = "status", columnDefinition = "e_order_status")
     private OrderStatus status;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", columnDefinition = "VARCHAR(255) DEFAULT 'UNPAID'")
-    //@Column(name = "payment_status", columnDefinition = "e_payment_status")
     private PaymentStatus paymentStatus;
 }
