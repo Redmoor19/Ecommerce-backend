@@ -3,9 +3,13 @@ package com.example.gameStore.services;
 import com.example.gameStore.dtos.GameDto;
 import com.example.gameStore.dtos.KeyDto;
 import com.example.gameStore.dtos.ReviewDto;
+import com.example.gameStore.entities.Game;
 import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
+import com.example.gameStore.repositories.GameRepository;
 import com.example.gameStore.services.interfaces.GameService;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -16,38 +20,27 @@ import java.util.UUID;
 @Service
 public class GameServiceImpl implements GameService {
 
+    private final ModelMapper modelMapper = new ModelMapper();
+    @Autowired
+    private GameRepository gameRepository;
+
     @Override
     public List<GameDto> findAllGames() {
-        return List.of(
-                new GameDto(UUID.randomUUID(), "Adventure Quest", List.of(Genre.ADVENTURE), 85,
-                        "http://example.com/thumb1.jpg", List.of("http://example.com/image1.jpg"),
-                        "Quest Devs", new Date(), "4GB RAM, 2GB GPU", List.of(PlayerSupport.SINGLE_PLAYER),
-                        19.99f, "An epic adventure game", "SKU12345", true, 4),
-                new GameDto(UUID.randomUUID(), "Space Explorer", List.of(Genre.SIMULATION), 90,
-                        "http://example.com/thumb2.jpg", List.of("http://example.com/image2.jpg"),
-                        "Space Devs", new Date(), "8GB RAM, 4GB GPU", List.of(PlayerSupport.MULTIPLAYER),
-                        29.99f, "Explore the universe", "SKU67890", true, 2),
-                new GameDto(UUID.randomUUID(), "Mystery Mansion", List.of(Genre.PUZZLE), 75,
-                        "http://example.com/thumb3.jpg", List.of("http://example.com/image3.jpg"),
-                        "Mystery Devs", new Date(), "6GB RAM, 3GB GPU", List.of(PlayerSupport.SINGLE_PLAYER),
-                        14.99f, "A spooky horror game", "SKU54321", false, 3)
-        );
+        List<Game> games = gameRepository.findAll();
+        return games.stream().map(game -> modelMapper.map(game, GameDto.class)).toList();
     }
 
     @Override
-    public Optional<GameDto> getGameById(String id) {
-        return Optional.of(new GameDto(UUID.fromString(id), "Fantasy World", List.of(Genre.RPG), 88,
-                "http://example.com/thumb4.jpg", List.of("http://example.com/image4.jpg"),
-                "Fantasy Devs", new Date(), "8GB RAM, 4GB GPU", List.of(PlayerSupport.MMO),
-                39.99f, "A magical RPG adventure", "SKU98765", true, 4));
+    public Optional<Game> getGameById(String id) {
+        return gameRepository.findAll().stream().filter(game -> game.getId().equals(UUID.fromString(id))).findFirst();
     }
 
     @Override
     public Optional<GameDto> createGame(GameDto gameDto) {
-        return Optional.of(new GameDto(UUID.randomUUID(), "Cyber City", List.of(Genre.ACTION), 92,
-                "http://example.com/thumb5.jpg", List.of("http://example.com/image5.jpg"),
-                "Cyber Devs", new Date(), "16GB RAM, 6GB GPU", List.of(PlayerSupport.ONLINE_COMPETITIVE),
-                49.99f, "An action-packed cyber adventure", "SKU11223", true, 5));
+        Game createGame = modelMapper.map(gameDto, Game.class);
+        System.out.println("Creating user is:\n" + createGame.toString());
+        gameRepository.save(createGame);
+        return Optional.of(modelMapper.map(createGame, GameDto.class));
 
     }
 
