@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -49,9 +50,8 @@ public class Game {
     @Column(name = "developer", nullable = false)
     private String developer;
 
-    @Column(name = "release_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date releaseDate;
+    @Column(name = "release_date", nullable = false, columnDefinition = "TIMESTAMPTZ")
+    private Timestamp releaseDate;
 
     @Column(name = "system_requirements", nullable = false)
     private String systemRequirements;
@@ -72,5 +72,5 @@ public class Game {
     private boolean isActive;
 
     @Column(name = "average_rating")
-    private int rating;
+    private float rating;
 }

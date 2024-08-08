@@ -26,7 +26,7 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public List<GameDto> findAllGames() {
-        var games = gameRepository.findAll();
+        List<Game> games = gameRepository.findAll();
         return games.stream().map(game -> modelMapper.map(game, GameDto.class)).toList();
     }
 
