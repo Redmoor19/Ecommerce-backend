@@ -51,32 +51,6 @@ public class Review {
     @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP")
     private Timestamp createdAt;
 
-    public void setUserId(UUID userId) {
-        if (userId != null) {
-            this.userId = new User();
-            this.userId.setId(userId);
-        } else {
-            this.userId = null;
-        }
-    }
-
-    public UUID getUserId() {
-        return this.userId.getId();
-    }
-
-    public void setGameId(UUID gameId) {
-        if (gameId != null) {
-            this.gameId = new Game();
-            this.gameId.setId(gameId);
-        } else {
-            this.gameId = null;
-        }
-    }
-
-    public UUID getGameId() {
-        return this.gameId.getId();
-    }
-
     @PrePersist
     protected void onCreate() {
         this.createdAt = Timestamp.from(Instant.now());

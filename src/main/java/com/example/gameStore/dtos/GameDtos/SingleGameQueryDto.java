@@ -1,35 +1,37 @@
 package com.example.gameStore.dtos.GameDtos;
 
-import com.example.gameStore.dtos.ReviewDtos.GameReviewDto;
-import com.example.gameStore.enums.Genre;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class SingleGameDto {
+public class SingleGameQueryDto {
     private UUID id;
     private String name;
-    private List<Genre> genreList;
-    private int quality;
+    private int quantity;
     private String thumbnail;
     private List<String> images;
     private String developer;
-    private Date releaseDate;
+    private Timestamp releaseDate;
     private String systemRequirements;
-    private List<String> playerSupport;
     private float price;
     private String description;
     private String sku;
-    private boolean isActive;
     private float averageRating;
-    private List<GameReviewDto> reviews;
+    private boolean isActive;
+    private List<String> genreList;
+    private List<String> playerSupport;
+    private UUID reviewID;
+    private String reviewDescription;
+    private int starRating;
+    private Timestamp createdAt;
+    private String username;
 }

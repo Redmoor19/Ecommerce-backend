@@ -42,7 +42,6 @@ public class GamesController {
     @GetMapping("games/{id}")
     public ResponseEntity<SingleGameDto> getGameById(@PathVariable(required = true, name = "id") String id) {
         Optional<SingleGameDto> game = gameService.getGameById(id);
-        System.out.println(game);
         return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 

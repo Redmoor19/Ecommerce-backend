@@ -2,14 +2,18 @@ package com.example.gameStore.services;
 
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameDto;
+import com.example.gameStore.dtos.GameDtos.SingleGameQueryDto;
 import com.example.gameStore.dtos.KeyDto;
+import com.example.gameStore.dtos.ReviewDtos.GameReviewDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 import com.example.gameStore.entities.Game;
 import com.example.gameStore.entities.Review;
+import com.example.gameStore.entities.User;
 import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
 import com.example.gameStore.repositories.GameRepository;
 import com.example.gameStore.repositories.ReviewRepository;
+import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.GameService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +32,8 @@ public class GameServiceImpl implements GameService {
     private GameRepository gameRepository;
     @Autowired
     private ReviewRepository reviewRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public List<GameDto> findAllGames() {
@@ -37,8 +43,13 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Optional<SingleGameDto> getGameById(String id) {
-        Optional<Game> foundGame = gameRepository.findById(UUID.fromString(id));
-        return foundGame.map(game -> modelMapper.map(game, SingleGameDto.class));
+        Optional<List<SingleGameQueryDto>> optSingleQueryDto = gameRepository.getSingleGame(UUID.fromString(id));
+        if (optSingleQueryDto.isEmpty()) return Optional.empty();
+        List<SingleGameQueryDto> singleGameQueryDtos = optSingleQueryDto.get();
+        SingleGameDto singleGameDto = modelMapper.map(singleGameQueryDtos.get(1), SingleGameDto.class);
+        List<GameReviewDto> reviews = singleGameQueryDtos.stream().map(queryDto -> modelMapper.map(queryDto, GameReviewDto.class)).toList();
+        singleGameDto.setReviews(reviews);
+        return Optional.of(singleGameDto);
     }
 
     @Override
@@ -143,8 +154,11 @@ public class GameServiceImpl implements GameService {
     @Override
     public Optional<ReviewDto> createReview(String gameId, String userId, ReviewDto reviewDto) {
         Review review = modelMapper.map(reviewDto, Review.class);
-        review.setUserId(UUID.fromString(userId));
-        review.setGameId(UUID.fromString(gameId));
+        Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
+        Optional<Game> optGame = gameRepository.findById(UUID.fromString(gameId));
+        if (optUser.isEmpty() || optGame.isEmpty()) return Optional.empty();
+        review.setUserId(optUser.get());
+        review.setGameId(optGame.get());
         Review savedReview = reviewRepository.save(review);
         return Optional.of(modelMapper.map(savedReview, ReviewDto.class));
     }
