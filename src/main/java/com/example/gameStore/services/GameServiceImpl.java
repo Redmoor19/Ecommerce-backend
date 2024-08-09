@@ -62,8 +62,8 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public List<String> getAllGenres() {
-        return Genre.getAllGenres();
+    public Optional<List<String>> getAllGenres() {
+        return gameRepository.getAllGenresList();
     }
 
     @Override

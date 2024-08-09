@@ -67,11 +67,8 @@ public class GamesController {
 
     @GetMapping("games/genres")
     public ResponseEntity<List<String>> getAllGenres() {
-        List<String> genreList = gameService.getAllGenres();
-        if (genreList.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(genreList);
+        Optional<List<String>> genreList = gameService.getAllGenres();
+        return genreList.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @GetMapping("games/genres/{genre}")

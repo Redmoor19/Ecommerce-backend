@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,6 +20,11 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
             WHERE game_id = :gameId
             """, nativeQuery = true)
     Optional<Integer> getGameKeysAmount(@Param("gameId") UUID gameId);
+
+    @Query(value = """
+        SELECT unnest(enum_range(NULL::e_game_genre))
+        """, nativeQuery = true)
+    Optional<List<String>> getAllGenresList();
 }
 
 

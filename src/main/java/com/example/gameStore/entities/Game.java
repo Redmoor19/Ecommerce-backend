@@ -10,6 +10,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,6 +38,7 @@ public class Game {
     private String name;
 
     @ElementCollection(targetClass = Genre.class)
+    @JoinTable(name = "genres", joinColumns = @JoinColumn(name = "genre_value"))
     @Enumerated(EnumType.STRING)
     @Column(name = "genre")
     private List<Genre> genreList;
@@ -59,6 +62,7 @@ public class Game {
     private String systemRequirements;
 
     @ElementCollection(targetClass = PlayerSupport.class)
+    @JoinTable(name = "player_support", joinColumns = @JoinColumn(name = "player_support_value"))
     @Enumerated(EnumType.STRING)
     @Column(name = "player_support")
     private List<PlayerSupport> playerSupport;

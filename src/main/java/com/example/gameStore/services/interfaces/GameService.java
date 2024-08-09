@@ -20,7 +20,7 @@ public interface GameService {
 
     boolean deleteGame(String id);
 
-    List<String> getAllGenres();
+    Optional<List<String>> getAllGenres();
 
     List<GameDto> getGamesByGenre(String genre);
 
