@@ -1,7 +1,7 @@
 package com.example.gameStore.services.interfaces;
 
 import com.example.gameStore.dtos.GameDtos.GameDto;
-import com.example.gameStore.dtos.GameDtos.SingleGameDto;
+import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.KeyDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 
@@ -12,7 +12,7 @@ public interface GameService {
 
     List<GameDto> findAllGames();
 
-    Optional<SingleGameDto> getGameById(String id);
+    Optional<SingleGameWithReviewsDto> getGameById(String id);
 
     Optional<GameDto> createGame(GameDto gameDto);
 

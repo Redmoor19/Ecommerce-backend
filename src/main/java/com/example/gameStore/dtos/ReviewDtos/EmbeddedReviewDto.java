@@ -12,7 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
-public class GameReviewDto {
+public class EmbeddedReviewDto {
     private UUID reviewID;
     private String reviewDescription;
     private int starRating;

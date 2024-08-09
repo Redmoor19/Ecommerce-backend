@@ -2,7 +2,7 @@ package com.example.gameStore.controllers;
 
 
 import com.example.gameStore.dtos.GameDtos.GameDto;
-import com.example.gameStore.dtos.GameDtos.SingleGameDto;
+import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.KeyDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 import com.example.gameStore.services.interfaces.GameService;
@@ -40,9 +40,9 @@ public class GamesController {
     }
 
     @GetMapping("games/{id}")
-    public ResponseEntity<SingleGameDto> getGameById(@PathVariable(required = true, name = "id") String id) {
-        Optional<SingleGameDto> game = gameService.getGameById(id);
-        return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<SingleGameWithReviewsDto> getGameById(@PathVariable(required = true, name = "id") String id) {
+        Optional<SingleGameWithReviewsDto> gameWithReviews = gameService.getGameById(id);
+        return gameWithReviews.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("games")
