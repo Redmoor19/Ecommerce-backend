@@ -1,4 +1,4 @@
-package com.example.gameStore.dtos;
+package com.example.gameStore.dtos.GameDtos;
 
 import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GameDto {
+public class SingleGameDto {
     private UUID id;
     private String name;
     private List<Genre> genreList;
@@ -31,4 +31,5 @@ public class GameDto {
     private String sku;
     private boolean isActive;
     private int rating;
+    private List<String> reviews;
 }

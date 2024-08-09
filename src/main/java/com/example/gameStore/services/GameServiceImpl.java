@@ -1,12 +1,15 @@
 package com.example.gameStore.services;
 
-import com.example.gameStore.dtos.GameDto;
+import com.example.gameStore.dtos.GameDtos.GameDto;
+import com.example.gameStore.dtos.GameDtos.SingleGameDto;
 import com.example.gameStore.dtos.KeyDto;
-import com.example.gameStore.dtos.ReviewDto;
+import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 import com.example.gameStore.entities.Game;
+import com.example.gameStore.entities.Review;
 import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
 import com.example.gameStore.repositories.GameRepository;
+import com.example.gameStore.repositories.ReviewRepository;
 import com.example.gameStore.services.interfaces.GameService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,8 @@ public class GameServiceImpl implements GameService {
     private final ModelMapper modelMapper = new ModelMapper();
     @Autowired
     private GameRepository gameRepository;
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     @Override
     public List<GameDto> findAllGames() {
@@ -31,8 +36,9 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<Game> getGameById(String id) {
-        return gameRepository.findAll().stream().filter(game -> game.getId().equals(UUID.fromString(id))).findFirst();
+    public Optional<SingleGameDto> getGameById(String id) {
+        Optional<Game> foundGame = gameRepository.findById(UUID.fromString(id));
+        return foundGame.map(game -> modelMapper.map(game, SingleGameDto.class));
     }
 
     @Override
@@ -131,54 +137,22 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public List<ReviewDto> getGameReviews(String gameId) {
-        return List.of(new ReviewDto(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                UUID.fromString(gameId),
-                "Great game, highly recommended!",
-                5,
-                new Date()
-        ), new ReviewDto(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                UUID.fromString(gameId),
-                "It is okay, but a bit boring.",
-                3,
-                new Date()
-        ), new ReviewDto(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                UUID.fromString(gameId),
-                "Not satisfied with the graphic quality. Expected better.",
-                2,
-                new Date()
-        ));
+        return List.of();
     }
 
     @Override
-    public Optional<ReviewDto> createReview(String gameId) {
-        System.out.println("============================" + gameId + "============================");
-        return Optional.of(new ReviewDto(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                "Fantastic game! Buy it!",
-                5,
-                new Date()
-        ));
+    public Optional<ReviewDto> createReview(String gameId, String userId, ReviewDto reviewDto) {
+        Review review = modelMapper.map(reviewDto, Review.class);
+        review.setUserId(UUID.fromString(userId));
+        review.setGameId(UUID.fromString(gameId));
+        Review savedReview = reviewRepository.save(review);
+        return Optional.of(modelMapper.map(savedReview, ReviewDto.class));
     }
 
     @Override
     public Optional<ReviewDto> updateReview(String gameId, String reviewId) {
         System.out.println("============================" + gameId + "***" + reviewId + "============================");
-        return Optional.of(new ReviewDto(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                "I didn't like it at all! Don't buy it!",
-                1,
-                new Date()
-        ));
+        return Optional.empty();
     }
 
     @Override
@@ -189,14 +163,7 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Optional<ReviewDto> getReviewById(String gameId, String reviewId) {
-        return Optional.of(new ReviewDto(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                "I found the review to response it!",
-                1,
-                new Date()
-        ));
+        return Optional.empty();
     }
 
     @Override

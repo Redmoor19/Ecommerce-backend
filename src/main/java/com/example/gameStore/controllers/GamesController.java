@@ -1,10 +1,10 @@
 package com.example.gameStore.controllers;
 
 
-import com.example.gameStore.dtos.GameDto;
+import com.example.gameStore.dtos.GameDtos.GameDto;
+import com.example.gameStore.dtos.GameDtos.SingleGameDto;
 import com.example.gameStore.dtos.KeyDto;
-import com.example.gameStore.dtos.ReviewDto;
-import com.example.gameStore.entities.Game;
+import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 import com.example.gameStore.services.interfaces.GameService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,8 +40,9 @@ public class GamesController {
     }
 
     @GetMapping("games/{id}")
-    public ResponseEntity<Game> getGameById(@PathVariable(required = true, name = "id") String id) {
-        Optional<Game> game = gameService.getGameById(id);
+    public ResponseEntity<SingleGameDto> getGameById(@PathVariable(required = true, name = "id") String id) {
+        Optional<SingleGameDto> game = gameService.getGameById(id);
+        System.out.println(game);
         return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -124,19 +125,20 @@ public class GamesController {
         return ResponseEntity.ok(reviews);
     }
 
-    @PostMapping("users/me/games/{gameId}/reviews")
-    public ResponseEntity<ReviewDto> createReview(@PathVariable String gameId) {
-        Optional<ReviewDto> review = gameService.createReview(gameId);
+    // I pass userId through URL temporarily since I can't get ID from request. Remember to delete after auth is complete!
+    @PostMapping("games/{gameId}/reviews/{userId}")
+    public ResponseEntity<ReviewDto> createReview(@PathVariable String gameId, @PathVariable String userId, @RequestBody ReviewDto reviewDto) {
+        Optional<ReviewDto> review = gameService.createReview(gameId, userId, reviewDto);
         return review.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PatchMapping("users/me/games/{gameId}/reviews/{reviewId}")
+    @PatchMapping("games/{gameId}/reviews/{reviewId}")
     public ResponseEntity<ReviewDto> updateReview(@PathVariable String gameId, @PathVariable String reviewId) {
         Optional<ReviewDto> review = gameService.updateReview(gameId, reviewId);
         return review.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("users/me/games/{gameId}/reviews/{reviewId}")
+    @DeleteMapping("games/{gameId}/reviews/{reviewId}")
     public ResponseEntity<ReviewDto> deleteReview(@PathVariable String gameId, @PathVariable String reviewId) {
         if (gameService.deleteReview(gameId, reviewId)) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

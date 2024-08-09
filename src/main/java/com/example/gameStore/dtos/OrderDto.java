@@ -1,6 +1,7 @@
 package com.example.gameStore.dtos;
 
 
+import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.enums.OrderStatus;
 import com.example.gameStore.enums.PaymentStatus;
 import lombok.AllArgsConstructor;
