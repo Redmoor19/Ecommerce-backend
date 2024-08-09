@@ -1,5 +1,6 @@
 package com.example.gameStore.services.interfaces;
 
+import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.UserDtos.CreateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UpdateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
@@ -20,4 +21,10 @@ public interface UserService {
     Optional<UserDto> updateUser(UpdateUserRequestDto updateUser);
 
     Optional<UserDto> getCurrentUser();
+
+    Optional<List<GameDto>> getFavouriteGames(String userId);
+
+    boolean addFavouriteGame(String userId, String gameId);
+
+    boolean removeFavouriteGame(String userId, String gameId);
 }
