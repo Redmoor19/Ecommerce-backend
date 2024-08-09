@@ -156,10 +156,12 @@ public class GamesController {
         return key.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("games/keys")
+    @GetMapping("games/keys/{gameId}")
     public ResponseEntity<Integer> getGameKeysAmount(@PathVariable String gameId) {
-        Optional<Integer> keysAmount = gameService.countGameKeys(gameId);
-        return keysAmount.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        Optional<Integer> keysAmountOpt = gameService.countGameKeys(gameId);
+        return keysAmountOpt
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 }

@@ -205,19 +205,18 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Optional<KeyCreationDto> addKeyToGame(KeyCreationDto keyCreationDto) {
-//        Key addKey = modelMapper.map(keyCreationDto, Key.class);
         Game game = gameRepository.findById(keyCreationDto.getGameId())
                 .orElseThrow(() -> new RuntimeException("Game not found with ID: " + keyCreationDto.getGameId()));
         Key key = new Key();
         key.setValue(keyCreationDto.getValue());
         key.setGame(game);
-//        System.out.println("Creating key is:\n" + addKey.toString());
         keyRepository.save(key);
         return Optional.of(modelMapper.map(key, KeyCreationDto.class));
     }
 
     @Override
     public Optional<Integer> countGameKeys(String gameId) {
-        return Optional.of(6);
+        UUID convertedGameId = UUID.fromString(gameId);
+        return gameRepository.getGameKeysAmount(convertedGameId);
     }
 }
