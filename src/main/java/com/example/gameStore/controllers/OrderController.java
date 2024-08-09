@@ -41,7 +41,7 @@ public class OrderController {
 
     @GetMapping("users/me/orders")
     public ResponseEntity<List<OrderDto>> findCurrentUserOrders() {
-        List<OrderDto> orders = orderService.findOrdersByUser(UUID.randomUUID());
+        List<OrderDto> orders = orderService.findOrdersByUser(UUID.randomUUID().toString());
         if (orders.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -58,6 +58,12 @@ public class OrderController {
     public ResponseEntity<OrderDto> findCurrentUserCurrentOrder() {
         Optional<OrderDto> order = orderService.findCurrentOrderByUser(UUID.randomUUID());
         return order.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/orders/user/{user_id}")
+    public ResponseEntity<List<OrderDto>> findOrderByUserId(@PathVariable(required = true, name = "id") String id) {
+        List<OrderDto> orders = orderService.findOrdersByUser(id);
+        return orders.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(orders);
     }
 
     @PostMapping("users/me/orders/current/game/{id}")

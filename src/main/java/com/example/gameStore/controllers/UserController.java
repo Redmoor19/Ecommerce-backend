@@ -1,8 +1,10 @@
 package com.example.gameStore.controllers;
 
+import com.example.gameStore.dtos.OrderDto;
 import com.example.gameStore.dtos.UserDtos.CreateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UpdateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
+import com.example.gameStore.services.interfaces.OrderService;
 import com.example.gameStore.services.interfaces.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,8 @@ public class UserController {
 
     @Autowired
     private final UserService userService;
+    @Autowired
+    private final OrderService orderService;
 
     @GetMapping
     public List<UserDto> findUsers() {
@@ -42,6 +46,7 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserDto> addUser(@RequestBody CreateUserRequestDto createUserDto) {
         Optional<UserDto> optCreatedUser = userService.createUser(createUserDto);
+        Optional<OrderDto> order = orderService.createNewOrder(optCreatedUser);
         return optCreatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 

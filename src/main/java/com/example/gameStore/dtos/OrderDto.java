@@ -17,8 +17,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderDto {
-    private UUID uuid;
-    private UUID userUuid;
+    private UUID id;
+    private UUID userId;
     private Double totalPrice;
     private Timestamp createdAt;
     private OrderStatus status;
