@@ -1,6 +1,7 @@
 package com.example.gameStore.controllers;
 
-import com.example.gameStore.dtos.OrderDto;
+import com.example.gameStore.dtos.OrderDtos.ExtendedOrderDto;
+import com.example.gameStore.dtos.OrderDtos.OrderDto;
 import com.example.gameStore.services.interfaces.OrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,15 @@ public class OrderController {
     @GetMapping("orders")
     public ResponseEntity<List<OrderDto>> findAllOrders() {
         List<OrderDto> orders = orderService.findAllOrders();
+        if (orders.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("extended-orders")
+    public ResponseEntity<List<ExtendedOrderDto>> findAllExtendedOrders() {
+        List<ExtendedOrderDto> orders = orderService.findAllExtendedOrders();
         if (orders.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -66,9 +76,10 @@ public class OrderController {
         return orders.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(orders);
     }
 
-    @PostMapping("users/me/orders/current/game/{id}")
-    public ResponseEntity<Void> addGameToOrder(@PathVariable(required = true, name = "id") String id) {
-        if (orderService.addGameToOrder(UUID.randomUUID(), UUID.randomUUID())) {
+    @PostMapping("users/me/orders/current/game/{id}/{order_id}")
+    public ResponseEntity<Void> addGameToOrder(@PathVariable(required = true, name = "id") String id,
+                                               @PathVariable(required = true, name = "order_id") String orderId) {
+        if (orderService.addGameToOrder(id, orderId)) {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();

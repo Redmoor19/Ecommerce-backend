@@ -1,6 +1,6 @@
 package com.example.gameStore.controllers;
 
-import com.example.gameStore.dtos.OrderDto;
+import com.example.gameStore.dtos.OrderDtos.OrderDto;
 import com.example.gameStore.dtos.UserDtos.CreateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UpdateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
