@@ -67,21 +67,8 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public List<GameDto> getGamesByGenre(String genre) {
-        System.out.println("=====================" + genre + "====================");
-        return List.of(new GameDto(
-                        UUID.randomUUID(), "Epic Saga", List.of(Genre.RPG, Genre.ACTION), 87,
-                        "http://example.com/thumb6.jpg", List.of("http://example.com/image6.jpg"),
-                        "Saga Studios", new Date(), "12GB RAM, 4GB GPU", List.of(PlayerSupport.MULTIPLAYER),
-                        59.99f, "An epic journey through fantastic worlds", "SKU33445", true, 9
-                ),
-
-                new GameDto(
-                        UUID.randomUUID(), "Stealth Ops", List.of(Genre.ACTION, Genre.SHOOTER), 94,
-                        "http://example.com/thumb7.jpg", List.of("http://example.com/image7.jpg"),
-                        "Ops Games", new Date(), "8GB RAM, 3GB GPU", List.of(PlayerSupport.COOPERATIVE),
-                        39.99f, "A thrilling stealth and shooting experience", "SKU55667", true, 8
-                ));
+    public Optional<List<Game>> getGamesByGenre(String genre) {
+        return gameRepository.getGamesByGenre(genre);
     }
 
     @Override

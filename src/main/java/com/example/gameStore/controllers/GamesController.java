@@ -72,12 +72,9 @@ public class GamesController {
     }
 
     @GetMapping("games/genres/{genre}")
-    public ResponseEntity<List<GameDto>> getGamesByGenre(@PathVariable String genre) {
-        List<GameDto> games = gameService.getGamesByGenre(genre);
-        if (games.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(games);
+    public ResponseEntity<List<Game>> getGamesByGenre(@PathVariable String genre) {
+        Optional<List<Game>> gamesByGenre = gameService.getGamesByGenre(genre);
+        return gamesByGenre.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @GetMapping("users/me/games")

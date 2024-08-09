@@ -22,7 +22,7 @@ public interface GameService {
 
     Optional<List<String>> getAllGenres();
 
-    List<GameDto> getGamesByGenre(String genre);
+    Optional<List<Game>> getGamesByGenre(String genre);
 
     List<GameDto> getCurrentUserGames();
 
