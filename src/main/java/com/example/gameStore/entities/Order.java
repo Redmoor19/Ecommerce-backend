@@ -50,8 +50,4 @@ public class Order {
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", columnDefinition = "VARCHAR(255) DEFAULT 'UNPAID'")
     private PaymentStatus paymentStatus;
-
-//    public void setUserId(UUID userId) {
-//        this.user.setId(userId);
-//    }
 }
