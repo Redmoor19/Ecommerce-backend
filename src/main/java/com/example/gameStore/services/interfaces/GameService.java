@@ -33,8 +33,6 @@ public interface GameService {
 
     boolean deleteFavoriteGameOfCurrentUser(String gameId);
 
-    List<ReviewDto> getGameReviews(String gameId);
-
     Optional<ReviewDto> createReview(String gameId, String userId, ReviewDto reviewDto);
 
     Optional<ReviewDto> updateReview(String gameId, String reviewId);

@@ -87,15 +87,6 @@ public class GamesController {
         return ResponseEntity.ok(games);
     }
 
-    @GetMapping("games/{gameId}/reviews")
-    public ResponseEntity<List<ReviewDto>> getGameReviews(@PathVariable String gameId) {
-        List<ReviewDto> reviews = gameService.getGameReviews(gameId);
-        if (reviews.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(reviews);
-    }
-
     // I pass userId through URL temporarily since I can't get ID from request. Remember to delete after auth is complete!
     @PostMapping("games/{gameId}/reviews/{userId}")
     public ResponseEntity<ReviewDto> createReview(@PathVariable String gameId, @PathVariable String userId, @RequestBody ReviewDto reviewDto) {

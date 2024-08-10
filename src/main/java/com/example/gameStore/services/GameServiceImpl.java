@@ -136,11 +136,6 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public List<ReviewDto> getGameReviews(String gameId) {
-        return List.of();
-    }
-
-    @Override
     public Optional<ReviewDto> createReview(String gameId, String userId, ReviewDto reviewDto) {
         Review review = modelMapper.map(reviewDto, Review.class);
         Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
