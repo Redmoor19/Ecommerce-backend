@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public Optional<UserDto> getUserById(UUID id) {
-        var foundUser = userRepository.findById(id);
+        Optional<User> foundUser = userRepository.findById(id);
         return foundUser.map(user -> modelMapper.map(user, UserDto.class));
     }
 

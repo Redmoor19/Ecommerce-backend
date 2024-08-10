@@ -1,9 +1,10 @@
 package com.example.gameStore.services.interfaces;
 
-import com.example.gameStore.dtos.GameDto;
 import com.example.gameStore.dtos.KeyCreationDto;
-import com.example.gameStore.dtos.ReviewDto;
 import com.example.gameStore.entities.Game;
+import com.example.gameStore.dtos.GameDtos.GameDto;
+import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
+import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,7 +13,7 @@ public interface GameService {
 
     List<GameDto> findAllGames();
 
-    Optional<Game> getGameById(String id);
+    Optional<SingleGameWithReviewsDto> getGameById(String id);
 
     Optional<GameDto> createGame(GameDto gameDto);
 
@@ -34,7 +35,7 @@ public interface GameService {
 
     List<ReviewDto> getGameReviews(String gameId);
 
-    Optional<ReviewDto> createReview(String gameId);
+    Optional<ReviewDto> createReview(String gameId, String userId, ReviewDto reviewDto);
 
     Optional<ReviewDto> updateReview(String gameId, String reviewId);
 

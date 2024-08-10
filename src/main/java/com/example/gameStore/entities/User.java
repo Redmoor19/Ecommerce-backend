@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -69,16 +70,17 @@ public class User {
     @Column(name = "phone")
     private String phone;
 
-    @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP")
+    @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ")
     private Timestamp createdAt;
 
     @PrePersist
-    public void prePersist() {
+    public void onCreate() {
         if (this.role == null) {
             this.role = UserRole.USER;
         }
         if (this.activeStatus == null) {
             this.activeStatus = UserStatus.UNVERIFIED;
         }
+        this.createdAt = Timestamp.from(Instant.now());
     }
 }
