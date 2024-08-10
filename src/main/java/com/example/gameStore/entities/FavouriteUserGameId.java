@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serializable;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -14,7 +13,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Embeddable
-public class FavouriteUserGameId implements Serializable {
+public class FavouriteUserGameId {
     private UUID userId;
     private UUID gameId;
 }
