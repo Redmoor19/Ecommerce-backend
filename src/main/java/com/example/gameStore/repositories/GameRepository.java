@@ -1,7 +1,7 @@
 package com.example.gameStore.repositories;
 
 
-import com.example.gameStore.dtos.GameDtos.SingleGameQueryDto;
+import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsQueryDto;
 import com.example.gameStore.entities.Game;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,7 +16,7 @@ import java.util.UUID;
 public interface GameRepository extends JpaRepository<Game, UUID> {
 
     @Query("""
-            SELECT new com.example.gameStore.dtos.GameDtos.SingleGameQueryDto(
+            SELECT new com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsQueryDto(
                 g.id, g.name, g.quantity, g.thumbnail, g.images, g.developer, g.releaseDate,
                 g.systemRequirements, g.price, g.description, g.sku, g.rating, g.isActive,
                 g.genreList, g.playerSupport, r.id, r.description, r.starRating, r.createdAt, u.username
@@ -26,7 +26,7 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
             JOIN r.userId u
             WHERE g.id = :gameId
             """)
-    Optional<List<SingleGameQueryDto>> getSingleGame(@Param("gameId") UUID gameId);
+    Optional<List<SingleGameWithReviewsQueryDto>> getSingleGame(@Param("gameId") UUID gameId);
 }
 
 

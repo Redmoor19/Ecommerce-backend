@@ -1,10 +1,10 @@
 package com.example.gameStore.services;
 
 import com.example.gameStore.dtos.GameDtos.GameDto;
-import com.example.gameStore.dtos.GameDtos.SingleGameDto;
-import com.example.gameStore.dtos.GameDtos.SingleGameQueryDto;
+import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
+import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsQueryDto;
 import com.example.gameStore.dtos.KeyDto;
-import com.example.gameStore.dtos.ReviewDtos.GameReviewDto;
+import com.example.gameStore.dtos.ReviewDtos.EmbeddedReviewDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 import com.example.gameStore.entities.Game;
 import com.example.gameStore.entities.Review;
@@ -42,12 +42,12 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<SingleGameDto> getGameById(String id) {
-        Optional<List<SingleGameQueryDto>> optSingleQueryDto = gameRepository.getSingleGame(UUID.fromString(id));
+    public Optional<SingleGameWithReviewsDto> getGameById(String id) {
+        Optional<List<SingleGameWithReviewsQueryDto>> optSingleQueryDto = gameRepository.getSingleGame(UUID.fromString(id));
         if (optSingleQueryDto.isEmpty()) return Optional.empty();
-        List<SingleGameQueryDto> singleGameQueryDtos = optSingleQueryDto.get();
-        SingleGameDto singleGameDto = modelMapper.map(singleGameQueryDtos.get(1), SingleGameDto.class);
-        List<GameReviewDto> reviews = singleGameQueryDtos.stream().map(queryDto -> modelMapper.map(queryDto, GameReviewDto.class)).toList();
+        List<SingleGameWithReviewsQueryDto> singleGameQueryDtos = optSingleQueryDto.get();
+        SingleGameWithReviewsDto singleGameDto = modelMapper.map(singleGameQueryDtos.get(1), SingleGameWithReviewsDto.class);
+        List<EmbeddedReviewDto> reviews = singleGameQueryDtos.stream().map(queryDto -> modelMapper.map(queryDto, EmbeddedReviewDto.class)).toList();
         singleGameDto.setReviews(reviews);
         return Optional.of(singleGameDto);
     }
