@@ -1,7 +1,7 @@
-package com.example.gameStore.dtos;
+package com.example.gameStore.dtos.GameDtos;
 
+import com.example.gameStore.dtos.ReviewDtos.EmbeddedReviewDto;
 import com.example.gameStore.enums.Genre;
-import com.example.gameStore.enums.PlayerSupport;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GameDto {
+public class SingleGameWithReviewsDto {
     private UUID id;
     private String name;
     private List<Genre> genreList;
@@ -25,10 +25,11 @@ public class GameDto {
     private String developer;
     private Date releaseDate;
     private String systemRequirements;
-    private List<PlayerSupport> playerSupport;
+    private List<String> playerSupport;
     private float price;
     private String description;
     private String sku;
     private boolean isActive;
-    private int rating;
+    private float averageRating;
+    private List<EmbeddedReviewDto> reviews;
 }
