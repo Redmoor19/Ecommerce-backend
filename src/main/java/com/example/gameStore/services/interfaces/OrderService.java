@@ -1,6 +1,8 @@
 package com.example.gameStore.services.interfaces;
 
-import com.example.gameStore.dtos.OrderDto;
+import com.example.gameStore.dtos.OrderDtos.OrderDto;
+import com.example.gameStore.dtos.OrderDtos.OrderWithUserDto;
+import com.example.gameStore.dtos.UserDtos.UserDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,13 +11,15 @@ import java.util.UUID;
 public interface OrderService {
     List<OrderDto> findAllOrders();
 
+    List<OrderWithUserDto> findAllExtendedOrders();
+
     Optional<OrderDto> findOrderById(String id);
 
-    List<OrderDto> findOrdersByUser(UUID userId);
+    List<OrderDto> findOrdersByUser(String userId);
 
     Optional<OrderDto> findCurrentOrderByUser(UUID userId);
 
-    boolean addGameToOrder(UUID gameId, UUID orderId);
+    boolean addGameToOrder(String gameId, String orderId);
 
     Optional<OrderDto> deleteGameFromOrder(UUID gameId, UUID orderId);
 
@@ -23,4 +27,5 @@ public interface OrderService {
 
     Optional<OrderDto> checkoutCurrentOrder();
 
+    Optional<OrderDto> createNewOrder(Optional<UserDto> userDto);
 }
