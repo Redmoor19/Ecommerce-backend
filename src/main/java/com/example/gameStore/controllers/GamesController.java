@@ -92,29 +92,6 @@ public class GamesController {
         return ResponseEntity.ok(games);
     }
 
-//    @GetMapping("users/me/games/favourites")
-//    public ResponseEntity<List<GameDto>> getCurrentUserFavouriteGames() {
-//        List<GameDto> games = gameService.getCurrentUserFavouriteGames();
-//        if (games.isEmpty()) {
-//            return ResponseEntity.noContent().build();
-//        }
-//        return ResponseEntity.ok(games);
-//    }
-//
-//    @PostMapping("users/me/games/favourites/{gameId}")
-//    public ResponseEntity<GameDto> addCurrentUserFavoriteGame(@PathVariable String gameId) {
-//        Optional<GameDto> game = gameService.addCurrentUserFavoriteGame(gameId);
-//        return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-//    }
-//
-//    @DeleteMapping("users/me/games/favourites/{gameId}")
-//    public ResponseEntity<GameDto> deleteCurrentUserFavoriteGame(@PathVariable String gameId) {
-//        if (gameService.deleteFavoriteGameOfCurrentUser(gameId)) {
-//            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-//        }
-//        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//    }
-
     @GetMapping("games/{gameId}/reviews")
     public ResponseEntity<List<ReviewDto>> getGameReviews(@PathVariable String gameId) {
         List<ReviewDto> reviews = gameService.getGameReviews(gameId);
