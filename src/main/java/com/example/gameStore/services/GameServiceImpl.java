@@ -2,7 +2,6 @@ package com.example.gameStore.services;
 
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
-import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsQueryDto;
 import com.example.gameStore.dtos.KeyDto;
 import com.example.gameStore.dtos.ReviewDtos.EmbeddedReviewDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
@@ -43,13 +42,12 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Optional<SingleGameWithReviewsDto> getGameById(String id) {
-        Optional<List<SingleGameWithReviewsQueryDto>> optSingleQueryDto = gameRepository.getSingleGame(UUID.fromString(id));
-        if (optSingleQueryDto.isEmpty()) return Optional.empty();
-        List<SingleGameWithReviewsQueryDto> singleGameQueryDtos = optSingleQueryDto.get();
-        SingleGameWithReviewsDto singleGameDto = modelMapper.map(singleGameQueryDtos.get(1), SingleGameWithReviewsDto.class);
-        List<EmbeddedReviewDto> reviews = singleGameQueryDtos.stream().map(queryDto -> modelMapper.map(queryDto, EmbeddedReviewDto.class)).toList();
-        singleGameDto.setReviews(reviews);
-        return Optional.of(singleGameDto);
+        Optional<Game> game = gameRepository.findById(UUID.fromString(id));
+        if (game.isEmpty()) return Optional.empty();
+        List<EmbeddedReviewDto> reviews = reviewRepository.findReviewsByGameId(UUID.fromString(id));
+        SingleGameWithReviewsDto singleGameWithReviewsDto = modelMapper.map(game, SingleGameWithReviewsDto.class);
+        singleGameWithReviewsDto.setReviews(reviews);
+        return Optional.of(singleGameWithReviewsDto);
     }
 
     @Override
