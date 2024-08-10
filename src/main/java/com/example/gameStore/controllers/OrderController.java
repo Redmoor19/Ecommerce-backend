@@ -1,7 +1,7 @@
 package com.example.gameStore.controllers;
 
-import com.example.gameStore.dtos.OrderDtos.ExtendedOrderDto;
 import com.example.gameStore.dtos.OrderDtos.OrderDto;
+import com.example.gameStore.dtos.OrderDtos.OrderWithUserDto;
 import com.example.gameStore.services.interfaces.OrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +35,8 @@ public class OrderController {
     }
 
     @GetMapping("extended-orders")
-    public ResponseEntity<List<ExtendedOrderDto>> findAllExtendedOrders() {
-        List<ExtendedOrderDto> orders = orderService.findAllExtendedOrders();
+    public ResponseEntity<List<OrderWithUserDto>> findAllExtendedOrders() {
+        List<OrderWithUserDto> orders = orderService.findAllExtendedOrders();
         if (orders.isEmpty()) {
             return ResponseEntity.noContent().build();
         }

@@ -1,7 +1,7 @@
 package com.example.gameStore.services.interfaces;
 
-import com.example.gameStore.dtos.OrderDtos.ExtendedOrderDto;
 import com.example.gameStore.dtos.OrderDtos.OrderDto;
+import com.example.gameStore.dtos.OrderDtos.OrderWithUserDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
 
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.UUID;
 public interface OrderService {
     List<OrderDto> findAllOrders();
 
-    List<ExtendedOrderDto> findAllExtendedOrders();
+    List<OrderWithUserDto> findAllExtendedOrders();
 
     Optional<OrderDto> findOrderById(String id);
 

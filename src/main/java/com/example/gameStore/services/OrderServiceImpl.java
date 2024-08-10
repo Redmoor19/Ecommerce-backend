@@ -1,8 +1,8 @@
 package com.example.gameStore.services;
 
-import com.example.gameStore.dtos.OrderDtos.ExtendedOrderDto;
 import com.example.gameStore.dtos.OrderDtos.GameOrderDto;
 import com.example.gameStore.dtos.OrderDtos.OrderDto;
+import com.example.gameStore.dtos.OrderDtos.OrderWithUserDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
 import com.example.gameStore.entities.Game;
 import com.example.gameStore.entities.GameOrder;
@@ -45,14 +45,22 @@ public class OrderServiceImpl implements OrderService {
 
     public List<OrderDto> findAllOrders() {
         List<Order> orders = orderRepository.findAll();
-        return orders.stream().map(o -> modelMapper.map(o, OrderDto.class)).toList();
+        return orders.stream()
+                .map(o -> {
+                    OrderDto e = modelMapper.map(o, OrderDto.class);
+                    e.setGames(new LinkedList<>());
+                    List<GameOrder> gameOrders = gameOrderRepository.findAllByOrderId(o.getId());
+                    gameOrders.forEach(go -> e.getGames().add(modelMapper.map(go, GameOrderDto.class)));
+                    return e;
+                })
+                .toList();
     }
 
-    public List<ExtendedOrderDto> findAllExtendedOrders() {
+    public List<OrderWithUserDto> findAllExtendedOrders() {
         List<Order> orders = orderRepository.findAll();
         return orders.stream()
                 .map(o -> {
-                    ExtendedOrderDto e = modelMapper.map(o, ExtendedOrderDto.class);
+                    OrderWithUserDto e = modelMapper.map(o, OrderWithUserDto.class);
                     e.setGames(new LinkedList<>());
                     List<GameOrder> gameOrders = gameOrderRepository.findAllByOrderId(o.getId());
                     gameOrders.forEach(go -> e.getGames().add(modelMapper.map(go, GameOrderDto.class)));

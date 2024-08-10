@@ -1,7 +1,6 @@
 package com.example.gameStore.dtos.OrderDtos;
 
 
-import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.enums.OrderStatus;
 import com.example.gameStore.enums.PaymentStatus;
 import lombok.AllArgsConstructor;
@@ -24,5 +23,5 @@ public class OrderDto {
     private Timestamp createdAt;
     private OrderStatus status;
     private PaymentStatus paymentStatus;
-    private List<GameDto> games;
+    private List<GameOrderDto> games;
 }
