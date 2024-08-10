@@ -2,15 +2,17 @@ package com.example.gameStore.services;
 
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
-import com.example.gameStore.dtos.KeyDto;
+import com.example.gameStore.dtos.KeyCreationDto;
 import com.example.gameStore.dtos.ReviewDtos.EmbeddedReviewDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 import com.example.gameStore.entities.Game;
+import com.example.gameStore.entities.Key;
 import com.example.gameStore.entities.Review;
 import com.example.gameStore.entities.User;
 import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
 import com.example.gameStore.repositories.GameRepository;
+import com.example.gameStore.repositories.KeyRepository;
 import com.example.gameStore.repositories.ReviewRepository;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.GameService;
@@ -29,6 +31,8 @@ public class GameServiceImpl implements GameService {
     private final ModelMapper modelMapper = new ModelMapper();
     @Autowired
     private GameRepository gameRepository;
+    @Autowired
+    private KeyRepository keyRepository;
     @Autowired
     private ReviewRepository reviewRepository;
     @Autowired
@@ -73,26 +77,13 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public List<String> getAllGenres() {
-        return Genre.getAllGenres();
+    public Optional<List<String>> getAllGenres() {
+        return gameRepository.getAllGenresList();
     }
 
     @Override
-    public List<GameDto> getGamesByGenre(String genre) {
-        System.out.println("=====================" + genre + "====================");
-        return List.of(new GameDto(
-                        UUID.randomUUID(), "Epic Saga", List.of(Genre.RPG, Genre.ACTION), 87,
-                        "http://example.com/thumb6.jpg", List.of("http://example.com/image6.jpg"),
-                        "Saga Studios", new Date(), "12GB RAM, 4GB GPU", List.of(PlayerSupport.MULTIPLAYER),
-                        59.99f, "An epic journey through fantastic worlds", "SKU33445", true, 9
-                ),
-
-                new GameDto(
-                        UUID.randomUUID(), "Stealth Ops", List.of(Genre.ACTION, Genre.SHOOTER), 94,
-                        "http://example.com/thumb7.jpg", List.of("http://example.com/image7.jpg"),
-                        "Ops Games", new Date(), "8GB RAM, 3GB GPU", List.of(PlayerSupport.COOPERATIVE),
-                        39.99f, "A thrilling stealth and shooting experience", "SKU55667", true, 8
-                ));
+    public Optional<List<Game>> getGamesByGenre(String genre) {
+        return gameRepository.getGamesByGenre(genre);
     }
 
     @Override
@@ -179,18 +170,19 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<KeyDto> addKeyToGame(String gameId) {
-        System.out.println("============================" + gameId + "============================");
-        return Optional.of(new KeyDto(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                new Date(),
-                UUID.fromString(gameId)
-        ));
+    public Optional<KeyCreationDto> addKeyToGame(KeyCreationDto keyCreationDto) {
+        Game game = gameRepository.findById(keyCreationDto.getGameId())
+                .orElseThrow(() -> new RuntimeException("Game not found with ID: " + keyCreationDto.getGameId()));
+        Key key = new Key();
+        key.setValue(keyCreationDto.getValue());
+        key.setGame(game);
+        keyRepository.save(key);
+        return Optional.of(modelMapper.map(key, KeyCreationDto.class));
     }
 
     @Override
     public Optional<Integer> countGameKeys(String gameId) {
-        return Optional.of(6);
+        UUID convertedGameId = UUID.fromString(gameId);
+        return gameRepository.getGameKeysAmount(convertedGameId);
     }
 }

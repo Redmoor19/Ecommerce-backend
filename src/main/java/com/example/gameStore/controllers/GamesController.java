@@ -3,8 +3,9 @@ package com.example.gameStore.controllers;
 
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
-import com.example.gameStore.dtos.KeyDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
+import com.example.gameStore.dtos.KeyCreationDto;
+import com.example.gameStore.entities.Game;
 import com.example.gameStore.services.interfaces.GameService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,20 +68,14 @@ public class GamesController {
 
     @GetMapping("games/genres")
     public ResponseEntity<List<String>> getAllGenres() {
-        List<String> genreList = gameService.getAllGenres();
-        if (genreList.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(genreList);
+        Optional<List<String>> genreList = gameService.getAllGenres();
+        return genreList.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @GetMapping("games/genres/{genre}")
-    public ResponseEntity<List<GameDto>> getGamesByGenre(@PathVariable String genre) {
-        List<GameDto> games = gameService.getGamesByGenre(genre);
-        if (games.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(games);
+    public ResponseEntity<List<Game>> getGamesByGenre(@PathVariable String genre) {
+        Optional<List<Game>> gamesByGenre = gameService.getGamesByGenre(genre);
+        return gamesByGenre.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @GetMapping("users/me/games")
@@ -128,16 +123,18 @@ public class GamesController {
         return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping("games/{gameId}/keys")
-    public ResponseEntity<KeyDto> addKeyToGame(@PathVariable String gameId) {
-        Optional<KeyDto> key = gameService.addKeyToGame(gameId);
+    @PostMapping("games/keys")
+    public ResponseEntity<KeyCreationDto> addKeyToGame(@RequestBody KeyCreationDto keyCreationDto) {
+        Optional<KeyCreationDto> key = gameService.addKeyToGame(keyCreationDto);
         return key.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("games/{gameId}/keys")
+    @GetMapping("games/keys/{gameId}")
     public ResponseEntity<Integer> getGameKeysAmount(@PathVariable String gameId) {
-        Optional<Integer> keysAmount = gameService.countGameKeys(gameId);
-        return keysAmount.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        Optional<Integer> keysAmountOpt = gameService.countGameKeys(gameId);
+        return keysAmountOpt
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 }
