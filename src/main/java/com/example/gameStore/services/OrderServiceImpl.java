@@ -88,6 +88,7 @@ public class OrderServiceImpl implements OrderService {
                 Integer q = gameOrder.getQuantity();
                 q++;
                 gameOrder.setQuantity(q);
+                gameOrderRepository.save(gameOrder);
                 return true;
             }
         }

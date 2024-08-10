@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface GameOrderRepository extends JpaRepository<GameOrder, UUID> {
-    //List<GameOrder> findAllByOrderId(UUID orderId);
 
     @Query("SELECT go FROM GameOrder go JOIN FETCH go.game WHERE go.order.id = :orderId")
     List<GameOrder> findAllByOrderId(@Param("orderId") UUID orderId);

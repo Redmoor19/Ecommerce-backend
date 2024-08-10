@@ -10,6 +10,7 @@ import java.util.UUID;
 
 public interface OrderService {
     List<OrderDto> findAllOrders();
+
     List<ExtendedOrderDto> findAllExtendedOrders();
 
     Optional<OrderDto> findOrderById(String id);
