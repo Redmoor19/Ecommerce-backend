@@ -3,10 +3,15 @@ package com.example.gameStore.entities;
 import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,10 +34,13 @@ public class Game {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "name", unique = true, nullable = false)
+    @Column(name = "name", unique = true, nullable = false, columnDefinition = "VARCHAR(50)")
     private String name;
 
-    @Column(name = "genre", columnDefinition = "e_game_genre[]")
+    @ElementCollection(targetClass = Genre.class)
+    @JoinTable(name = "genres", joinColumns = @JoinColumn(name = "genre_value"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "genre")
     private List<Genre> genreList;
 
     @Column(name = "quantity")
@@ -47,16 +55,19 @@ public class Game {
     @Column(name = "developer", nullable = false)
     private String developer;
 
-    @Column(name = "release_date", nullable = false, columnDefinition = "TIMESTAMPTZ")
+    @Column(name = "release_date", nullable = false, columnDefinition = "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP")
     private Timestamp releaseDate;
 
     @Column(name = "system_requirements", nullable = false)
     private String systemRequirements;
 
-    @Column(name = "player_support", columnDefinition = "e_player_support[]")
+    @ElementCollection(targetClass = PlayerSupport.class)
+    @JoinTable(name = "player_support", joinColumns = @JoinColumn(name = "player_support_value"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "player_support")
     private List<PlayerSupport> playerSupport;
 
-    @Column(name = "price")
+    @Column(name = "price", columnDefinition = "NUMERIC(10, 2)")
     private float price;
 
     @Column(name = "description", nullable = false)
@@ -68,6 +79,6 @@ public class Game {
     @Column(name = "is_active")
     private boolean isActive;
 
-    @Column(name = "average_rating")
+    @Column(name = "average_rating", nullable = false, columnDefinition = "NUMERIC(2, 1) DEFAULT 0")
     private float rating;
 }
