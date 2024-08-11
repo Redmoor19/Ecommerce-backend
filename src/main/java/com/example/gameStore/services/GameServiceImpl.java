@@ -1,8 +1,9 @@
 package com.example.gameStore.services;
 
+import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
-import com.example.gameStore.dtos.KeyCreationDto;
+import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
 import com.example.gameStore.dtos.ReviewDtos.EmbeddedReviewDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 import com.example.gameStore.entities.Game;
@@ -16,7 +17,9 @@ import com.example.gameStore.repositories.KeyRepository;
 import com.example.gameStore.repositories.ReviewRepository;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.GameService;
+import com.example.gameStore.utilities.GameUtilities;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,9 +58,9 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<GameDto> createGame(GameDto gameDto) {
-        Game createGame = modelMapper.map(gameDto, Game.class);
-        System.out.println("Creating user is:\n" + createGame.toString());
+    public Optional<GameDto> createGame(CreateGameRequestDto createGameRequestDto) {
+        Game createGame = modelMapper.map(createGameRequestDto, Game.class);
+        createGame.setSku(GameUtilities.generateSku());
         gameRepository.save(createGame);
         return Optional.of(modelMapper.map(createGame, GameDto.class));
 
@@ -77,67 +80,15 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<List<String>> getAllGenres() {
+    public List<String> getAllGenres() {
         return gameRepository.getAllGenresList();
     }
 
     @Override
-    public Optional<List<Game>> getGamesByGenre(String genre) {
-        return gameRepository.getGamesByGenre(genre);
-    }
-
-    @Override
-    public List<GameDto> getCurrentUserGames() {
-        return List.of(new GameDto(
-                        UUID.randomUUID(), "Epic Saga", List.of(Genre.RPG, Genre.ACTION), 87,
-                        "http://example.com/thumb6.jpg", List.of("http://example.com/image6.jpg"),
-                        "Saga Studios", new Date(), "12GB RAM, 4GB GPU", List.of(PlayerSupport.MULTIPLAYER),
-                        59.99f, "An epic journey through fantastic worlds", "SKU33445", true, 3
-                ),
-
-                new GameDto(
-                        UUID.randomUUID(), "Stealth Ops", List.of(Genre.ACTION, Genre.SHOOTER), 94,
-                        "http://example.com/thumb7.jpg", List.of("http://example.com/image7.jpg"),
-                        "Ops Games", new Date(), "8GB RAM, 3GB GPU", List.of(PlayerSupport.COOPERATIVE),
-                        39.99f, "A thrilling stealth and shooting experience", "SKU55667", true, 8
-                ));
-    }
-
-    @Override
-    public List<GameDto> getCurrentUserFavouriteGames() {
-        return List.of(new GameDto(
-                        UUID.randomUUID(), "Epic Saga", List.of(Genre.RPG, Genre.ACTION), 87,
-                        "http://example.com/thumb6.jpg", List.of("http://example.com/image6.jpg"),
-                        "Saga Studios", new Date(), "12GB RAM, 4GB GPU", List.of(PlayerSupport.MULTIPLAYER),
-                        59.99f, "An epic journey through fantastic worlds", "SKU33445", true, 4
-                ),
-
-                new GameDto(
-                        UUID.randomUUID(), "Stealth Ops", List.of(Genre.ACTION, Genre.SHOOTER), 94,
-                        "http://example.com/thumb7.jpg", List.of("http://example.com/image7.jpg"),
-                        "Ops Games", new Date(), "8GB RAM, 3GB GPU", List.of(PlayerSupport.COOPERATIVE),
-                        39.99f, "A thrilling stealth and shooting experience", "SKU55667", true, 8
-                ));
-    }
-
-    @Override
-    public Optional<GameDto> addCurrentUserFavoriteGame(String gameId) {
-        System.out.println("============================" + gameId + "============================");
-        return Optional.of(new GameDto(UUID.randomUUID(), "Cyber City", List.of(Genre.ACTION), 92,
-                "http://example.com/thumb5.jpg", List.of("http://example.com/image5.jpg"),
-                "Cyber Devs", new Date(), "16GB RAM, 6GB GPU", List.of(PlayerSupport.ONLINE_COMPETITIVE),
-                49.99f, "An action-packed cyber adventure", "SKU11223", true, 5));
-    }
-
-    @Override
-    public boolean deleteFavoriteGameOfCurrentUser(String gameId) {
-        System.out.println("============================" + gameId + "============================");
-        return true;
-    }
-
-    @Override
-    public List<ReviewDto> getGameReviews(String gameId) {
-        return List.of();
+    public List<GameDto> getGamesByGenre(String genre) {
+        List<Game> gamesByGenre = gameRepository.getGamesByGenre(genre);
+        return modelMapper.map(gamesByGenre, new TypeToken<List<GameDto>>() {
+        }.getType());
     }
 
     @Override
@@ -165,18 +116,14 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<ReviewDto> getReviewById(String gameId, String reviewId) {
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<KeyCreationDto> addKeyToGame(KeyCreationDto keyCreationDto) {
-        Game game = gameRepository.findById(keyCreationDto.getGameId())
-                .orElseThrow(() -> new RuntimeException("Game not found with ID: " + keyCreationDto.getGameId()));
+    public Optional<KeyCreationDto> addKeyToGame(String gameId) {
+        Game game = gameRepository.findById(UUID.fromString(gameId))
+                .orElseThrow(() -> new RuntimeException("Game not found with ID: " + gameId));
         Key key = new Key();
-        key.setValue(keyCreationDto.getValue());
         key.setGame(game);
         keyRepository.save(key);
+        game.setQuantity(game.getQuantity() + 1);
+        gameRepository.save(game);
         return Optional.of(modelMapper.map(key, KeyCreationDto.class));
     }
 

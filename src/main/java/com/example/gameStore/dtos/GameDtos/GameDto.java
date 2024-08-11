@@ -19,7 +19,7 @@ public class GameDto {
     private UUID id;
     private String name;
     private List<Genre> genreList;
-    private int quality;
+    private int quantity;
     private String thumbnail;
     private List<String> images;
     private String developer;

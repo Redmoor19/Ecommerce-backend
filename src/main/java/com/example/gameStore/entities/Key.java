@@ -43,5 +43,6 @@ public class Key {
     @PrePersist
     protected void onCreate() {
         this.createdAt = new Timestamp(System.currentTimeMillis());
+        this.value = UUID.randomUUID();
     }
 }
