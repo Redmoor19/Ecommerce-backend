@@ -86,6 +86,24 @@ public class GameController {
         return ResponseEntity.ok(gamesByGenre);
     }
 
+    @GetMapping("games/player-support")
+    public ResponseEntity<List<String>> getAllPlayerSupport() {
+        List<String> playerSupport = gameService.getAllPlayerSupport();
+        if (playerSupport.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(playerSupport);
+    }
+
+    @GetMapping("games/player-support/{playerSupport}")
+    public ResponseEntity<List<GameDto>> getGamesByPlayerSupport(@PathVariable String playerSupport) {
+        List<GameDto> gamesByPlayerSupport = gameService.getGamesByPlayerSupport(playerSupport);
+        if (gamesByPlayerSupport.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(gamesByPlayerSupport);
+    }
+
 
     // I pass userId through URL temporarily since I can't get ID from request. Remember to delete after auth is complete!
     @PostMapping("games/{gameId}/reviews/{userId}")

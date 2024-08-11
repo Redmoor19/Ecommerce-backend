@@ -28,6 +28,10 @@ public interface GameService {
 
     List<GameDto> getGamesByGenre(String genre);
 
+    List<String> getAllPlayerSupport();
+
+    List<GameDto> getGamesByPlayerSupport(String playerSupport);
+
     Optional<ReviewDto> createReview(String gameId, String userId, ReviewDto reviewDto);
 
     Optional<ReviewDto> updateReview(String userId, String gameId, UpdateReviewRequestDto updateReviewRequestDto);

@@ -113,6 +113,18 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
+    public List<String> getAllPlayerSupport() {
+        return gameRepository.getAllPlayerSupportList();
+    }
+
+    @Override
+    public List<GameDto> getGamesByPlayerSupport(String playerSupport) {
+        List<Game> gamesByPlayerSupport = gameRepository.getGamesByPlayerSupport(playerSupport);
+        return modelMapper.map(gamesByPlayerSupport, new TypeToken<List<GameDto>>() {
+        }.getType());
+    }
+
+    @Override
     public Optional<ReviewDto> createReview(String gameId, String userId, ReviewDto reviewDto) {
         Review review = modelMapper.map(reviewDto, Review.class);
         Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
