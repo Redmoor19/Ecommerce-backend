@@ -1,5 +1,6 @@
 package com.example.gameStore.controllers;
 
+import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.OrderDtos.OrderDto;
 import com.example.gameStore.dtos.UserDtos.CreateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UpdateUserRequestDto;
@@ -86,5 +87,23 @@ public class UserController {
     public ResponseEntity<UserDto> updateLoggedInUser(@RequestBody UpdateUserRequestDto updateUserDto) {
         Optional<UserDto> updatedUser = userService.updateUser(updateUserDto);
         return updatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
+    }
+
+    @GetMapping("/me/games/favourites/{userId}")
+    public ResponseEntity<List<GameDto>> findFavouriteGames(@PathVariable String userId) {
+        Optional<List<GameDto>> favouriteGames = userService.getFavouriteGames(userId);
+        return favouriteGames.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/me/games/favourites/{gameId}/{userId}")
+    public ResponseEntity<Void> addUserFavourite(@PathVariable String gameId, @PathVariable String userId) {
+        boolean isAdded = userService.addFavouriteGame(userId, gameId);
+        return isAdded ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/me/games/favourites/{gameId}/{userId}")
+    public ResponseEntity<Void> deleteUserFavourite(@PathVariable String gameId, @PathVariable String userId) {
+        boolean isDeleted = userService.removeFavouriteGame(userId, gameId);
+        return isDeleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 }
