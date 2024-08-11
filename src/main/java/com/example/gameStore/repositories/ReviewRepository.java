@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface ReviewRepository extends JpaRepository<Review, UUID> {
@@ -21,12 +20,5 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
             WHERE g.id = :gameId
             """)
     List<EmbeddedReviewDto> findReviewsByGameId(@Param("gameId") UUID gameId);
-
-    @Query(value = """
-            SELECT *
-            FROM t_review
-            WHERE user_id = :userId AND game_id = :gameId AND id = :reviewId
-            """, nativeQuery = true)
-    Optional<Review> findReview(@Param("userId") UUID userId, @Param("gameId") UUID gameId, @Param("reviewId") UUID reviewId);
 }
 

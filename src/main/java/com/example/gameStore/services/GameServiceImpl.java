@@ -126,11 +126,14 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Optional<ReviewDto> updateReview(String userId, String gameId, UpdateReviewRequestDto updateReviewRequestDto) {
-        Optional<Review> optionalUpdatingReview = reviewRepository.findReview(
-                UUID.fromString(userId),
-                UUID.fromString(gameId),
-                updateReviewRequestDto.getId());
-        if (optionalUpdatingReview.isEmpty()) return Optional.empty();
+        Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
+        Optional<Game> optGame = gameRepository.findById(UUID.fromString(gameId));
+        if (optUser.isEmpty() || optGame.isEmpty()) return Optional.empty();
+        Optional<Review> optionalUpdatingReview = reviewRepository.findById(updateReviewRequestDto.getId());
+        if (optionalUpdatingReview.isEmpty()
+                || !optionalUpdatingReview.get().getUserId().getId().equals(optUser.get().getId())
+                || !optionalUpdatingReview.get().getGameId().getId().equals(optGame.get().getId()))
+            return Optional.empty();
         Review updatedReview = optionalUpdatingReview.get();
         updatedReview.setDescription(updateReviewRequestDto.getDescription());
         updatedReview.setStarRating(updateReviewRequestDto.getStarRating());
@@ -139,8 +142,16 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public boolean deleteReview(String gameId, String reviewId) {
-        System.out.println("============================" + gameId + "***" + reviewId + "============================");
+    public boolean deleteReview(String gameId, String reviewId, String userId) {
+        Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
+        Optional<Game> optGame = gameRepository.findById(UUID.fromString(gameId));
+        if (optUser.isEmpty() || optGame.isEmpty()) return false;
+        Optional<Review> optionalDeletingReview = reviewRepository.findById(UUID.fromString(reviewId));
+        if (optionalDeletingReview.isEmpty()
+                || !optionalDeletingReview.get().getUserId().getId().equals(optUser.get().getId())
+                || !optionalDeletingReview.get().getGameId().getId().equals(optGame.get().getId()))
+            return false;
+        reviewRepository.delete(optionalDeletingReview.get());
         return true;
     }
 

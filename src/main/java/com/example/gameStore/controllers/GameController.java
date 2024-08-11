@@ -100,9 +100,9 @@ public class GameController {
         return review.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("games/{gameId}/reviews/{reviewId}")
-    public ResponseEntity<ReviewDto> deleteReview(@PathVariable String gameId, @PathVariable String reviewId) {
-        if (gameService.deleteReview(gameId, reviewId)) {
+    @DeleteMapping("games/{gameId}/reviews/{reviewId}/user/{userId}")
+    public ResponseEntity<ReviewDto> deleteReview(@PathVariable String gameId, @PathVariable String reviewId, @PathVariable String userId) {
+        if (gameService.deleteReview(gameId, reviewId, userId)) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);

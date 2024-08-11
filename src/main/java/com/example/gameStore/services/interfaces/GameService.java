@@ -32,7 +32,7 @@ public interface GameService {
 
     Optional<ReviewDto> updateReview(String userId, String gameId, UpdateReviewRequestDto updateReviewRequestDto);
 
-    boolean deleteReview(String gameId, String reviewId);
+    boolean deleteReview(String gameId, String reviewId, String userId);
 
     Optional<KeyCreationDto> addKeyToGame(String gameId);
 
