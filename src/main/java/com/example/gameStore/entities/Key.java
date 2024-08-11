@@ -26,7 +26,7 @@ import java.util.UUID;
 @Table(name = "t_key")
 public class Key {
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "game_id", nullable = false)
     public Game game;
 
