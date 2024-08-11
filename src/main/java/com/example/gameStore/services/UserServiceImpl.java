@@ -46,10 +46,9 @@ public class UserServiceImpl implements UserService {
     }
 
     public Optional<UserDto> createUser(CreateUserRequestDto newUser) {
-        User createUser = modelMapper.map(newUser, User.class);
-        System.out.println(createUser.toString());
-        userRepository.save(createUser);
-        return Optional.of(modelMapper.map(createUser, UserDto.class));
+        User user = modelMapper.map(newUser, User.class);
+        User createdUser = userRepository.save(user);
+        return Optional.of(modelMapper.map(createdUser, UserDto.class));
     }
 
     public Optional<UserDto> updateUser(UpdateUserRequestDto updateUserDto, String userId) {
