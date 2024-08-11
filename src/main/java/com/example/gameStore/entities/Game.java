@@ -2,6 +2,7 @@ package com.example.gameStore.entities;
 
 import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
+ import com.example.gameStore.utilities.GameUtilities;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
@@ -12,6 +13,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -81,4 +83,10 @@ public class Game {
 
     @Column(name = "average_rating", nullable = false, columnDefinition = "NUMERIC(2, 1) DEFAULT 0")
     private float rating;
+
+    @PrePersist
+    protected void onCreate() {
+        this.sku = GameUtilities.generateSku();
+    }
+
 }

@@ -1,10 +1,12 @@
 package com.example.gameStore.services.interfaces;
 
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
+import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +19,7 @@ public interface GameService {
 
     Optional<GameDto> createGame(CreateGameRequestDto createGameRequestDto);
 
-    Optional<GameDto> updateGame(String id, GameDto gameDto);
+    Optional<GameDto> updateGame(@RequestBody UpdateGameRequestDto updateGameRequestDto);
 
     boolean deleteGame(String id);
 

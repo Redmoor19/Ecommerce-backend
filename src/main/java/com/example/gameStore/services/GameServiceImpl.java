@@ -3,6 +3,7 @@ package com.example.gameStore.services;
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
+import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
 import com.example.gameStore.dtos.ReviewDtos.EmbeddedReviewDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
@@ -10,20 +11,17 @@ import com.example.gameStore.entities.Game;
 import com.example.gameStore.entities.Key;
 import com.example.gameStore.entities.Review;
 import com.example.gameStore.entities.User;
-import com.example.gameStore.enums.Genre;
-import com.example.gameStore.enums.PlayerSupport;
 import com.example.gameStore.repositories.GameRepository;
 import com.example.gameStore.repositories.KeyRepository;
 import com.example.gameStore.repositories.ReviewRepository;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.GameService;
-import com.example.gameStore.utilities.GameUtilities;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,6 +38,19 @@ public class GameServiceImpl implements GameService {
     private ReviewRepository reviewRepository;
     @Autowired
     private UserRepository userRepository;
+
+    public static <E extends Enum<E>> boolean areNotEnumListsEquals(List<E> list1, List<E> list2) {
+        if (list1.size() != list2.size()) {
+            return true;
+        }
+
+        for (int i = 0; i < list1.size(); i++) {
+            if (!list1.get(i).equals(list2.get(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     public List<GameDto> findAllGames() {
@@ -60,18 +71,24 @@ public class GameServiceImpl implements GameService {
     @Override
     public Optional<GameDto> createGame(CreateGameRequestDto createGameRequestDto) {
         Game createGame = modelMapper.map(createGameRequestDto, Game.class);
-        createGame.setSku(GameUtilities.generateSku());
         gameRepository.save(createGame);
         return Optional.of(modelMapper.map(createGame, GameDto.class));
-
     }
 
     @Override
-    public Optional<GameDto> updateGame(String id, GameDto gameDto) {
-        return Optional.of(new GameDto(UUID.fromString(id), "Cyber City", List.of(Genre.ACTION), 92,
-                "http://example.com/thumb5.jpg", List.of("http://example.com/image5.jpg"),
-                "Cyber Devs", new Date(), "16GB RAM, 6GB GPU", List.of(PlayerSupport.ONLINE_COMPETITIVE),
-                49.99f, "An action-packed cyber adventure", "SKU11223", true, 1));
+    public Optional<GameDto> updateGame(@RequestBody UpdateGameRequestDto updateGameRequestDto) {
+        Optional<Game> updateGame = gameRepository.findById(updateGameRequestDto.getId());
+        if (updateGame.isEmpty()) return Optional.empty();
+        Game existingGame = updateGame.get();
+        if (areNotEnumListsEquals(existingGame.getGenreList(), updateGameRequestDto.getGenreList())) {
+            existingGame.setGenreList(updateGameRequestDto.getGenreList());
+        }
+        if (areNotEnumListsEquals(existingGame.getPlayerSupport(), updateGameRequestDto.getPlayerSupport())) {
+            existingGame.setPlayerSupport(updateGameRequestDto.getPlayerSupport());
+        }
+        modelMapper.map(updateGameRequestDto, existingGame);
+        gameRepository.save(existingGame);
+        return Optional.of(modelMapper.map(existingGame, GameDto.class));
     }
 
     @Override

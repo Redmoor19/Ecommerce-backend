@@ -4,6 +4,7 @@ package com.example.gameStore.controllers;
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
+import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 import com.example.gameStore.services.interfaces.GameService;
@@ -52,9 +53,9 @@ public class GameController {
         return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PatchMapping("games/{id}")
-    public ResponseEntity<GameDto> updateGame(@PathVariable String id, @RequestBody GameDto gameDto) {
-        Optional<GameDto> game = gameService.updateGame(id, gameDto);
+    @PatchMapping("games")
+    public ResponseEntity<GameDto> updateGame(@RequestBody UpdateGameRequestDto updateGameRequestDto) {
+        Optional<GameDto> game = gameService.updateGame(updateGameRequestDto);
         return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
