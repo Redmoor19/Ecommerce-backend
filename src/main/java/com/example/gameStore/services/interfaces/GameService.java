@@ -6,6 +6,7 @@ import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
+import com.example.gameStore.dtos.ReviewDtos.UpdateReviewRequestDto;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public interface GameService {
 
     Optional<ReviewDto> createReview(String gameId, String userId, ReviewDto reviewDto);
 
-    Optional<ReviewDto> updateReview(String gameId, String reviewId);
+    Optional<ReviewDto> updateReview(String userId, String gameId, UpdateReviewRequestDto updateReviewRequestDto);
 
     boolean deleteReview(String gameId, String reviewId);
 

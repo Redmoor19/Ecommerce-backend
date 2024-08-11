@@ -7,6 +7,7 @@ import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
+import com.example.gameStore.dtos.ReviewDtos.UpdateReviewRequestDto;
 import com.example.gameStore.services.interfaces.GameService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,9 +94,9 @@ public class GameController {
         return review.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PatchMapping("games/{gameId}/reviews/{reviewId}")
-    public ResponseEntity<ReviewDto> updateReview(@PathVariable String gameId, @PathVariable String reviewId) {
-        Optional<ReviewDto> review = gameService.updateReview(gameId, reviewId);
+    @PatchMapping("games/{gameId}/reviews/{userId}")
+    public ResponseEntity<ReviewDto> updateReview(@PathVariable String gameId, @PathVariable String userId, @RequestBody UpdateReviewRequestDto updateReviewRequestDto) {
+        Optional<ReviewDto> review = gameService.updateReview(userId, gameId, updateReviewRequestDto);
         return review.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 

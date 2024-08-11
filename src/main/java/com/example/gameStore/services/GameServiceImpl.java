@@ -7,6 +7,7 @@ import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
 import com.example.gameStore.dtos.ReviewDtos.EmbeddedReviewDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
+import com.example.gameStore.dtos.ReviewDtos.UpdateReviewRequestDto;
 import com.example.gameStore.entities.Game;
 import com.example.gameStore.entities.Key;
 import com.example.gameStore.entities.Review;
@@ -124,9 +125,17 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<ReviewDto> updateReview(String gameId, String reviewId) {
-        System.out.println("============================" + gameId + "***" + reviewId + "============================");
-        return Optional.empty();
+    public Optional<ReviewDto> updateReview(String userId, String gameId, UpdateReviewRequestDto updateReviewRequestDto) {
+        Optional<Review> optionalUpdatingReview = reviewRepository.findReview(
+                UUID.fromString(userId),
+                UUID.fromString(gameId),
+                updateReviewRequestDto.getId());
+        if (optionalUpdatingReview.isEmpty()) return Optional.empty();
+        Review updatedReview = optionalUpdatingReview.get();
+        updatedReview.setDescription(updateReviewRequestDto.getDescription());
+        updatedReview.setStarRating(updateReviewRequestDto.getStarRating());
+        reviewRepository.save(updatedReview);
+        return Optional.of(modelMapper.map(updatedReview, ReviewDto.class));
     }
 
     @Override
