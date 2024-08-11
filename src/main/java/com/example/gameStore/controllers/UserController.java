@@ -1,7 +1,6 @@
 package com.example.gameStore.controllers;
 
 import com.example.gameStore.dtos.GameDtos.GameDto;
-import com.example.gameStore.dtos.OrderDtos.OrderDto;
 import com.example.gameStore.dtos.UserDtos.CreateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UpdateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
@@ -47,7 +46,7 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserDto> addUser(@RequestBody CreateUserRequestDto createUserDto) {
         Optional<UserDto> optCreatedUser = userService.createUser(createUserDto);
-        Optional<OrderDto> order = orderService.createNewOrder(optCreatedUser);
+        orderService.createNewOrder(optCreatedUser);
         return optCreatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 

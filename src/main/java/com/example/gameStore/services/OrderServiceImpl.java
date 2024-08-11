@@ -83,14 +83,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     public boolean addGameToOrder(String gameId, String orderId) {
-        Game game = gameRepository.findById(UUID.fromString(gameId)).orElse(null);
-        Order order = orderRepository.findById(UUID.fromString(orderId)).orElse(null);
-        if (game == null || order == null) {
-            return false;
-        }
-        List<GameOrder> gamesOrder = gameOrderRepository.findAllByOrderId(order.getId());
+        Optional<Game> game = gameRepository.findById(UUID.fromString(gameId));
+        Optional<Order> order = orderRepository.findById(UUID.fromString(orderId));
+        if (game.isEmpty() || order.isEmpty()) return false;
+
+        order.get().setTotalPrice(order.get().getTotalPrice() + game.get().getPrice());
+        orderRepository.save(order.get());
+
+        List<GameOrder> gamesOrder = gameOrderRepository.findAllByOrderId(order.get().getId());
         for (GameOrder gameOrder : gamesOrder) {
-            if (gameOrder.getGame().getId().equals(game.getId())) {
+            if (gameOrder.getGame().getId().equals(game.get().getId())) {
                 Integer q = gameOrder.getQuantity();
                 q++;
                 gameOrder.setQuantity(q);
@@ -99,19 +101,32 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         GameOrder gameOrder = new GameOrder();
-        gameOrder.setId(new GameOrderId(game.getId(), order.getId()));
-        gameOrder.setGame(game);
-        gameOrder.setOrder(order);
+        gameOrder.setId(new GameOrderId(game.get().getId(), order.get().getId()));
+        gameOrder.setGame(game.get());
+        gameOrder.setOrder(order.get());
         gameOrder.setQuantity(1);
         gameOrderRepository.save(gameOrder);
         return true;
     }
 
     public Optional<OrderDto> deleteGameFromOrder(String gameId, String orderId) {
+        Optional<Order> order = orderRepository.findById(UUID.fromString(orderId));
+        if (order.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Optional<Game> game = gameRepository.findById(UUID.fromString(gameId));
+        if (game.isEmpty()) {
+            return Optional.empty();
+        }
+
         Optional<GameOrder> gamesInOrder = gameOrderRepository.findFirstByOrderIdAndGameId(UUID.fromString(orderId), UUID.fromString(gameId));
         if (gamesInOrder.isEmpty()) {
             return Optional.empty();
         }
+
+        order.get().setTotalPrice(order.get().getTotalPrice() - game.get().getPrice());
+
         if (gamesInOrder.get().getQuantity() > 1) {
             Integer q = gamesInOrder.get().getQuantity();
             q--;
@@ -161,7 +176,32 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order.get());
         createNewOrder(user.get());
 
-        // some pay function
+        return payForOrder(userId);
+    }
+
+    private Optional<OrderDto> payForOrder(String userId) {
+        Optional<User> user = userRepository.findById(UUID.fromString(userId));
+        if (user.isEmpty()) {
+            return Optional.empty();
+        }
+        if (user.get().getActiveStatus() != UserStatus.ACTIVE) {
+            return Optional.empty();
+        }
+
+        Optional<Order> order = orderRepository.findFirstByUserIdAndStatusAndPaymentStatus(UUID.fromString(userId), OrderStatus.PROCESSING, PaymentStatus.WAITING);
+        if (order.isEmpty()) {
+            return Optional.empty();
+        }
+
+        List<GameOrder> gamesOrder = gameOrderRepository.findAllByOrderId(order.get().getId());
+        if (gamesOrder.isEmpty()) {
+            return Optional.empty();
+        }
+        for (GameOrder gameOrder : gamesOrder) {
+            if (gameOrder.getGame().getQuantity() < gameOrder.getQuantity()) {
+                return Optional.empty();
+            }
+        }
 
         order.get().setPaymentStatus(PaymentStatus.PAID);
         order.get().setStatus(OrderStatus.APPROVED);
