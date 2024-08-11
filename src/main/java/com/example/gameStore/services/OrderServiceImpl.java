@@ -7,23 +7,29 @@ import com.example.gameStore.dtos.UserDtos.UserDto;
 import com.example.gameStore.entities.Game;
 import com.example.gameStore.entities.GameOrder;
 import com.example.gameStore.entities.GameOrderId;
+import com.example.gameStore.entities.Key;
 import com.example.gameStore.entities.Order;
 import com.example.gameStore.entities.User;
 import com.example.gameStore.enums.OrderStatus;
 import com.example.gameStore.enums.PaymentStatus;
+import com.example.gameStore.enums.UserStatus;
 import com.example.gameStore.repositories.GameOrderRepository;
 import com.example.gameStore.repositories.GameRepository;
+import com.example.gameStore.repositories.KeyRepository;
 import com.example.gameStore.repositories.OrderRepository;
 import com.example.gameStore.repositories.UserRepository;
+import com.example.gameStore.services.interfaces.EmailService;
 import com.example.gameStore.services.interfaces.OrderService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,10 +40,12 @@ public class OrderServiceImpl implements OrderService {
     private OrderRepository orderRepository;
     @Autowired
     private GameRepository gameRepository;
-
+    @Autowired
+    private EmailService emailService;
+    @Autowired
+    private KeyRepository keyRepository;
     @Autowired
     private GameOrderRepository gameOrderRepository;
-
     @Autowired
     private UserRepository userRepository;
 
@@ -75,14 +83,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     public boolean addGameToOrder(String gameId, String orderId) {
-        Game game = gameRepository.findById(UUID.fromString(gameId)).orElse(null);
-        Order order = orderRepository.findById(UUID.fromString(orderId)).orElse(null);
-        if (game == null || order == null) {
-            return false;
-        }
-        List<GameOrder> gamesOrder = gameOrderRepository.findAllByOrderId(order.getId());
+        Optional<Game> game = gameRepository.findById(UUID.fromString(gameId));
+        Optional<Order> order = orderRepository.findById(UUID.fromString(orderId));
+        if (game.isEmpty() || order.isEmpty()) return false;
+
+        order.get().setTotalPrice(order.get().getTotalPrice() + game.get().getPrice());
+        orderRepository.save(order.get());
+
+        List<GameOrder> gamesOrder = gameOrderRepository.findAllByOrderId(order.get().getId());
         for (GameOrder gameOrder : gamesOrder) {
-            if (gameOrder.getGame().getId().equals(game.getId())) {
+            if (gameOrder.getGame().getId().equals(game.get().getId())) {
                 Integer q = gameOrder.getQuantity();
                 q++;
                 gameOrder.setQuantity(q);
@@ -91,19 +101,32 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         GameOrder gameOrder = new GameOrder();
-        gameOrder.setId(new GameOrderId(game.getId(), order.getId()));
-        gameOrder.setGame(game);
-        gameOrder.setOrder(order);
+        gameOrder.setId(new GameOrderId(game.get().getId(), order.get().getId()));
+        gameOrder.setGame(game.get());
+        gameOrder.setOrder(order.get());
         gameOrder.setQuantity(1);
         gameOrderRepository.save(gameOrder);
         return true;
     }
 
     public Optional<OrderDto> deleteGameFromOrder(String gameId, String orderId) {
+        Optional<Order> order = orderRepository.findById(UUID.fromString(orderId));
+        if (order.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Optional<Game> game = gameRepository.findById(UUID.fromString(gameId));
+        if (game.isEmpty()) {
+            return Optional.empty();
+        }
+
         Optional<GameOrder> gamesInOrder = gameOrderRepository.findFirstByOrderIdAndGameId(UUID.fromString(orderId), UUID.fromString(gameId));
         if (gamesInOrder.isEmpty()) {
             return Optional.empty();
         }
+
+        order.get().setTotalPrice(order.get().getTotalPrice() - game.get().getPrice());
+
         if (gamesInOrder.get().getQuantity() > 1) {
             Integer q = gamesInOrder.get().getQuantity();
             q--;
@@ -116,6 +139,7 @@ public class OrderServiceImpl implements OrderService {
         return Optional.of(mapOrderToOrderDto(orderRepository.findById(UUID.fromString(orderId)).get()));
     }
 
+    @Transactional
     public Optional<OrderDto> cleanCurrentOrder(String orderId) {
         Optional<Order> order = orderRepository.findById(UUID.fromString(orderId));
         if (order.isEmpty()) {
@@ -125,9 +149,89 @@ public class OrderServiceImpl implements OrderService {
         return Optional.of(mapOrderToOrderDto(order.get()));
     }
 
-    public Optional<OrderDto> checkoutCurrentOrder() {
-        return Optional.of(new OrderDto(UUID.randomUUID(), UUID.randomUUID(), 100.0, new Timestamp(System.currentTimeMillis()),
-                OrderStatus.DELIVERED, PaymentStatus.PAID, Collections.EMPTY_LIST));
+    public Optional<OrderDto> checkoutCurrentOrder(String userId) {
+        Optional<User> user = userRepository.findById(UUID.fromString(userId));
+        if (user.isEmpty()) {
+            return Optional.empty();
+        }
+        if (user.get().getActiveStatus() != UserStatus.ACTIVE) {
+            return Optional.empty();
+        }
+
+        Optional<Order> order = orderRepository.findFirstByUserIdAndStatusAndPaymentStatus(UUID.fromString(userId), OrderStatus.PROCESSING, PaymentStatus.UNPAID);
+        if (order.isEmpty()) {
+            return Optional.empty();
+        }
+        List<GameOrder> gamesOrder = gameOrderRepository.findAllByOrderId(order.get().getId());
+        if (gamesOrder.isEmpty()) {
+            return Optional.empty();
+        }
+        for (GameOrder gameOrder : gamesOrder) {
+            if (gameOrder.getGame().getQuantity() < gameOrder.getQuantity()) {
+                return Optional.empty();
+            }
+        }
+
+        order.get().setPaymentStatus(PaymentStatus.WAITING);
+        orderRepository.save(order.get());
+        createNewOrder(user.get());
+
+        return payForOrder(userId);
+    }
+
+    private Optional<OrderDto> payForOrder(String userId) {
+        Optional<User> user = userRepository.findById(UUID.fromString(userId));
+        if (user.isEmpty()) {
+            return Optional.empty();
+        }
+        if (user.get().getActiveStatus() != UserStatus.ACTIVE) {
+            return Optional.empty();
+        }
+
+        Optional<Order> order = orderRepository.findFirstByUserIdAndStatusAndPaymentStatus(UUID.fromString(userId), OrderStatus.PROCESSING, PaymentStatus.WAITING);
+        if (order.isEmpty()) {
+            return Optional.empty();
+        }
+
+        List<GameOrder> gamesOrder = gameOrderRepository.findAllByOrderId(order.get().getId());
+        if (gamesOrder.isEmpty()) {
+            return Optional.empty();
+        }
+        for (GameOrder gameOrder : gamesOrder) {
+            if (gameOrder.getGame().getQuantity() < gameOrder.getQuantity()) {
+                return Optional.empty();
+            }
+        }
+
+        order.get().setPaymentStatus(PaymentStatus.PAID);
+        order.get().setStatus(OrderStatus.APPROVED);
+        orderRepository.save(order.get());
+
+        Map<String, List<String>> gameKeys = getKeysByGamesOrder(gamesOrder);
+        emailService.sendMessagePurchasedKeys(user.get().getEmail(), gameKeys);
+
+        order.get().setStatus(OrderStatus.DELIVERED);
+        Order checkoutOrder = orderRepository.save(order.get());
+
+        return Optional.of(mapOrderToOrderDto(checkoutOrder));
+    }
+
+    private Map<String, List<String>> getKeysByGamesOrder(List<GameOrder> gamesOrder) {
+        Map<String, List<String>> gameKeys = new HashMap<>();
+        List<UUID> toDelete = new LinkedList<>();
+        for (GameOrder gameOrder : gamesOrder) {
+            Game game = gameOrder.getGame();
+            List<Key> keys = keyRepository.findByGameId(game.getId());
+            for (int i = 0; i < gameOrder.getQuantity(); i++) {
+                Key key = keys.get(i);
+                gameKeys.computeIfAbsent(game.getName(), k -> new LinkedList<>()).add(key.getValue().toString());
+                toDelete.add(key.getId());
+                game.setQuantity(game.getQuantity() - 1);
+                gameRepository.save(game);
+            }
+        }
+        keyRepository.deleteAllById(toDelete);
+        return gameKeys;
     }
 
 
@@ -141,6 +245,17 @@ public class OrderServiceImpl implements OrderService {
         }
         Order order = new Order();
         order.setUser(user.get());
+        order.setStatus(OrderStatus.PROCESSING);
+        order.setPaymentStatus(PaymentStatus.UNPAID);
+        order.setTotalPrice(0.0);
+        order.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        Order newOrder = orderRepository.save(order);
+        return Optional.of(modelMapper.map(newOrder, OrderDto.class));
+    }
+
+    public Optional<OrderDto> createNewOrder(User user) {
+        Order order = new Order();
+        order.setUser(user);
         order.setStatus(OrderStatus.PROCESSING);
         order.setPaymentStatus(PaymentStatus.UNPAID);
         order.setTotalPrice(0.0);

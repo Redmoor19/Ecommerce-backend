@@ -1,7 +1,9 @@
 package com.example.gameStore.repositories;
 
 import com.example.gameStore.entities.Game;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -23,7 +25,7 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
     @Query(value = """
             SELECT unnest(enum_range(NULL::e_game_genre))
             """, nativeQuery = true)
-    Optional<List<String>> getAllGenresList();
+    List<String> getAllGenresList();
 
     @Query(value = """
             SELECT t_game.*
@@ -31,7 +33,7 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
             JOIN genres ON t_game.id = genres.genre_value
             WHERE genres.genre = :genre
             """, nativeQuery = true)
-    Optional<List<Game>> getGamesByGenre(@Param("genre") String genre);
+    List<Game> getGamesByGenre(@Param("genre") String genre);
 }
 
 
