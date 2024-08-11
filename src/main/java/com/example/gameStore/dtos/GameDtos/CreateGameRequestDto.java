@@ -9,13 +9,12 @@ import lombok.Setter;
 
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateGameDto {
+public class CreateGameRequestDto {
     private String name;
     private List<Genre> genreList;
     private String thumbnail;
@@ -26,5 +25,4 @@ public class CreateGameDto {
     private List<PlayerSupport> playerSupport;
     private float price;
     private String description;
-    private String sku;
 }

@@ -1,6 +1,6 @@
 package com.example.gameStore.services;
 
-import com.example.gameStore.dtos.GameDtos.CreateGameDto;
+import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
@@ -17,6 +17,7 @@ import com.example.gameStore.repositories.KeyRepository;
 import com.example.gameStore.repositories.ReviewRepository;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.GameService;
+import com.example.gameStore.utilities.GameUtilities;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,8 +58,9 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<GameDto> createGame(CreateGameDto createGameDto) {
-        Game createGame = modelMapper.map(createGameDto, Game.class);
+    public Optional<GameDto> createGame(CreateGameRequestDto createGameRequestDto) {
+        Game createGame = modelMapper.map(createGameRequestDto, Game.class);
+        createGame.setSku(GameUtilities.generateSku());
         gameRepository.save(createGame);
         return Optional.of(modelMapper.map(createGame, GameDto.class));
 
@@ -121,7 +123,7 @@ public class GameServiceImpl implements GameService {
         key.setValue(keyCreationDto.getValue());
         key.setGame(game);
         keyRepository.save(key);
-        int keysAdded = keyRepository.incrementQuantityById(keyCreationDto.getGameId());
+        int keysAdded = gameRepository.incrementQuantityById(keyCreationDto.getGameId());
         if (keysAdded == 1) {
             return Optional.of(modelMapper.map(key, KeyCreationDto.class));
         }

@@ -1,8 +1,7 @@
 package com.example.gameStore.services.interfaces;
 
-import com.example.gameStore.dtos.GameDtos.CreateGameDto;
+import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
-import com.example.gameStore.entities.Game;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
@@ -16,7 +15,7 @@ public interface GameService {
 
     Optional<SingleGameWithReviewsDto> getGameById(String id);
 
-    Optional<GameDto> createGame(CreateGameDto createGameDto);
+    Optional<GameDto> createGame(CreateGameRequestDto createGameRequestDto);
 
     Optional<GameDto> updateGame(String id, GameDto gameDto);
 
