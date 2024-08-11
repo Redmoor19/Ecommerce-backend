@@ -100,9 +100,9 @@ public class AuthServiceImpl implements AuthService {
         String hashedPassword = PasswordAuthentication.hash(resetPasswordDto.getPassword());
         user.setPassword(hashedPassword);
         user.setPasswordChangedAt(Timestamp.from(Instant.now()));
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
-        LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(user, UserDto.class));
+        LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(savedUser, UserDto.class));
         return Optional.of(loggedInUserDto);
     }
 
@@ -117,9 +117,10 @@ public class AuthServiceImpl implements AuthService {
         String hashedPassword = PasswordAuthentication.hash(updatePasswordDto.getNewPassword());
         user.setPassword(hashedPassword);
         user.setPasswordChangedAt(Timestamp.from(Instant.now()));
+        User savedUser = userRepository.save(user);
         userRepository.save(user);
 
-        LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(user, UserDto.class));
+        LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(savedUser, UserDto.class));
         return Optional.of(loggedInUserDto);
     }
 
@@ -133,8 +134,9 @@ public class AuthServiceImpl implements AuthService {
 
         user.setActiveStatus(UserStatus.ACTIVE);
         user.setConfirmEmailToken(null);
+        User savedUser = userRepository.save(user);
 
-        LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(user, UserDto.class));
+        LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(savedUser, UserDto.class));
         return Optional.of(loggedInUserDto);
     }
 
