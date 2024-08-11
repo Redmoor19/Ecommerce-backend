@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
@@ -22,4 +23,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Transactional
     @Query("UPDATE User SET role=:role WHERE id =:userId AND role <> :role ")
     int updateUserRole(@Param("userId") UUID userId, @Param("role") UserRole role);
+
+    Optional<User> findByEmail(String email);
+
+    Optional<User> findByPasswordResetToken(String token);
+
+    Optional<User> findByConfirmEmailToken(String token);
 }
