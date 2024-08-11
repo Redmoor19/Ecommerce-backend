@@ -1,6 +1,7 @@
 package com.example.gameStore.controllers;
 
 
+import com.example.gameStore.dtos.GameDtos.CreateGameDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
@@ -47,8 +48,8 @@ public class GamesController {
     }
 
     @PostMapping("games")
-    public ResponseEntity<GameDto> createGame(@RequestBody GameDto gameDto) {
-        Optional<GameDto> game = gameService.createGame(gameDto);
+    public ResponseEntity<GameDto> createGame(@RequestBody CreateGameDto createGameDto) {
+        Optional<GameDto> game = gameService.createGame(createGameDto);
         return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 

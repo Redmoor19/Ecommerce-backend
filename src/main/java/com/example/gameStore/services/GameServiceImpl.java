@@ -1,5 +1,6 @@
 package com.example.gameStore.services;
 
+import com.example.gameStore.dtos.GameDtos.CreateGameDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.KeyCreationDto;
@@ -55,9 +56,8 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<GameDto> createGame(GameDto gameDto) {
-        Game createGame = modelMapper.map(gameDto, Game.class);
-        System.out.println("Creating user is:\n" + createGame.toString());
+    public Optional<GameDto> createGame(CreateGameDto createGameDto) {
+        Game createGame = modelMapper.map(createGameDto, Game.class);
         gameRepository.save(createGame);
         return Optional.of(modelMapper.map(createGame, GameDto.class));
 
