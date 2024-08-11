@@ -3,6 +3,7 @@ package com.example.gameStore.services.interfaces;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.UserDtos.CreateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UpdateUserRequestDto;
+import com.example.gameStore.dtos.UserDtos.UpdateUserRoleRequestDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
 
 import java.util.List;
@@ -16,9 +17,13 @@ public interface UserService {
 
     Optional<UserDto> createUser(CreateUserRequestDto newUser);
 
-    boolean deleteUser(UUID id);
+    Optional<UserDto> updateUser(UpdateUserRequestDto updateUser, String userId);
 
-    Optional<UserDto> updateUser(UpdateUserRequestDto updateUser);
+    boolean updateUserRole(UpdateUserRoleRequestDto role, String userId);
+
+    boolean deleteUser(String id);
+
+    boolean activateUser(String id);
 
     Optional<UserDto> getCurrentUser();
 

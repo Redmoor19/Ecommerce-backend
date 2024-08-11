@@ -4,6 +4,7 @@ import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.OrderDtos.OrderDto;
 import com.example.gameStore.dtos.UserDtos.CreateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UpdateUserRequestDto;
+import com.example.gameStore.dtos.UserDtos.UpdateUserRoleRequestDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
 import com.example.gameStore.services.interfaces.OrderService;
 import com.example.gameStore.services.interfaces.UserService;
@@ -53,18 +54,30 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> removeUser(@PathVariable String userId) {
-        if (userService.deleteUser(UUID.fromString(userId))) {
+        if (userService.deleteUser(userId)) {
             return ResponseEntity.status(204).build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/activate/{userId}")
+    public ResponseEntity<Void> activateUser(@PathVariable String userId) {
+        if (userService.activateUser(userId)) {
+            return ResponseEntity.status(200).build();
         }
         return ResponseEntity.notFound().build();
     }
 
     @PatchMapping("/{userId}")
     public ResponseEntity<UserDto> updateUser(@PathVariable String userId, @RequestBody UpdateUserRequestDto updateUserDto) {
-        boolean matchId = updateUserDto.getId().equals(UUID.fromString(userId));
-        if (!matchId) return ResponseEntity.badRequest().build();
-        Optional<UserDto> optUpdatedUser = userService.updateUser(updateUserDto);
+        Optional<UserDto> optUpdatedUser = userService.updateUser(updateUserDto, userId);
         return optUpdatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
+    }
+
+    @PatchMapping("role/{userId}")
+    public ResponseEntity<Void> updateUserRole(@PathVariable String userId, @RequestBody UpdateUserRoleRequestDto roleDto) {
+        boolean isUpdated = userService.updateUserRole(roleDto, userId);
+        return isUpdated ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 
     @GetMapping("/me")
@@ -73,19 +86,18 @@ public class UserController {
         return optLoggedInUserDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
-    @DeleteMapping("/delete-me")
-    public ResponseEntity<Void> removeLoggedInUser() {
-        UUID userId = UUID.randomUUID();
+    @DeleteMapping("/delete-me/{userId}")
+    public ResponseEntity<Void> removeLoggedInUser(@PathVariable String userId) {
         if (userService.deleteUser(userId)) {
             return ResponseEntity.status(204).build();
-
         }
         return ResponseEntity.notFound().build();
     }
 
     @PatchMapping("/update-me")
     public ResponseEntity<UserDto> updateLoggedInUser(@RequestBody UpdateUserRequestDto updateUserDto) {
-        Optional<UserDto> updatedUser = userService.updateUser(updateUserDto);
+        String userId = "sdsfa";
+        Optional<UserDto> updatedUser = userService.updateUser(updateUserDto, userId);
         return updatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
