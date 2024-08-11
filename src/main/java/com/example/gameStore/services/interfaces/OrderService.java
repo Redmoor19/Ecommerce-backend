@@ -6,7 +6,6 @@ import com.example.gameStore.dtos.UserDtos.UserDto;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 public interface OrderService {
     List<OrderDto> findAllOrders();
@@ -17,13 +16,13 @@ public interface OrderService {
 
     List<OrderDto> findOrdersByUser(String userId);
 
-    Optional<OrderDto> findCurrentOrderByUser(UUID userId);
+    Optional<OrderDto> findCurrentOrderByUser(String userId);
 
     boolean addGameToOrder(String gameId, String orderId);
 
-    Optional<OrderDto> deleteGameFromOrder(UUID gameId, UUID orderId);
+    Optional<OrderDto> deleteGameFromOrder(String gameId, String orderId);
 
-    Optional<OrderDto> cleanCurrentOrder(UUID orderId);
+    Optional<OrderDto> cleanCurrentOrder(String orderId);
 
     Optional<OrderDto> checkoutCurrentOrder();
 

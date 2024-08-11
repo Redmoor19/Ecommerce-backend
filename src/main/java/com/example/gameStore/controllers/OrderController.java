@@ -64,14 +64,14 @@ public class OrderController {
         return order.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("users/me/orders/current")
-    public ResponseEntity<OrderDto> findCurrentUserCurrentOrder() {
-        Optional<OrderDto> order = orderService.findCurrentOrderByUser(UUID.randomUUID());
+    @GetMapping("users/me/orders/current/{user_id}")
+    public ResponseEntity<OrderDto> findCurrentUserCurrentOrder(@PathVariable(required = true, name = "user_id") String id) {
+        Optional<OrderDto> order = orderService.findCurrentOrderByUser(id);
         return order.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/orders/user/{user_id}")
-    public ResponseEntity<List<OrderDto>> findOrderByUserId(@PathVariable(required = true, name = "id") String id) {
+    public ResponseEntity<List<OrderDto>> findOrderByUserId(@PathVariable(required = true, name = "user_id") String id) {
         List<OrderDto> orders = orderService.findOrdersByUser(id);
         return orders.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(orders);
     }
@@ -85,16 +85,17 @@ public class OrderController {
         return ResponseEntity.badRequest().build();
     }
 
-    @DeleteMapping("users/me/orders/current/game/{id}")
-    public ResponseEntity<OrderDto> deleteGameFromOrder(@PathVariable(required = true, name = "id") String id) {
-        return orderService.deleteGameFromOrder(UUID.randomUUID(), UUID.randomUUID())
+    @DeleteMapping("users/me/orders/current/game/{id}/{order_id}")
+    public ResponseEntity<OrderDto> deleteGameFromOrder(@PathVariable(required = true, name = "id") String id,
+                                                        @PathVariable(required = true, name = "order_id") String orderId) {
+        return orderService.deleteGameFromOrder(id, orderId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("users/me/orders/current")
-    public ResponseEntity<OrderDto> cleanCurrentOrder() {
-        return orderService.cleanCurrentOrder(UUID.randomUUID())
+    @DeleteMapping("users/me/orders/current/{order_id}")
+    public ResponseEntity<OrderDto> cleanCurrentOrder(@PathVariable(required = true, name = "order_id") String orderId) {
+        return orderService.cleanCurrentOrder(orderId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
