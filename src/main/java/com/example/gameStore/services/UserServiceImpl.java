@@ -3,11 +3,14 @@ package com.example.gameStore.services;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.UserDtos.CreateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UpdateUserRequestDto;
+import com.example.gameStore.dtos.UserDtos.UpdateUserRoleRequestDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
 import com.example.gameStore.entities.FavouriteUserGame;
 import com.example.gameStore.entities.FavouriteUserGameId;
 import com.example.gameStore.entities.Game;
 import com.example.gameStore.entities.User;
+import com.example.gameStore.enums.UserRole;
+import com.example.gameStore.enums.UserStatus;
 import com.example.gameStore.repositories.FavouriteUserGameRepository;
 import com.example.gameStore.repositories.GameRepository;
 import com.example.gameStore.repositories.UserRepository;
@@ -43,21 +46,35 @@ public class UserServiceImpl implements UserService {
     }
 
     public Optional<UserDto> createUser(CreateUserRequestDto newUser) {
-        User createUser = modelMapper.map(newUser, User.class);
-        System.out.println(createUser.toString());
-        userRepository.save(createUser);
-        return Optional.of(modelMapper.map(createUser, UserDto.class));
+        User user = modelMapper.map(newUser, User.class);
+        User createdUser = userRepository.save(user);
+        return Optional.of(modelMapper.map(createdUser, UserDto.class));
     }
 
-    public boolean deleteUser(UUID id) {
-        userRepository.deleteById(id);
-        return true;
+    public Optional<UserDto> updateUser(UpdateUserRequestDto updateUserDto, String userId) {
+        Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
+        if (optUser.isEmpty()) return Optional.empty();
+        User user = optUser.get();
+        modelMapper.map(updateUserDto, user);
+        User savedUser = userRepository.save(user);
+        return Optional.of(modelMapper.map(savedUser, UserDto.class));
     }
 
-    public Optional<UserDto> updateUser(UpdateUserRequestDto updateUserDto) {
-        User updateUser = modelMapper.map(updateUserDto, User.class);
-        userRepository.save(updateUser);
-        return getUserById(updateUser.getId());
+    public boolean updateUserRole(UpdateUserRoleRequestDto roleDto, String userId) {
+        String role = roleDto.getRole();
+        boolean isValid = UserRole.isValidRole(role);
+        if (!isValid) return false;
+        UserRole userRole = UserRole.valueOf(role.toUpperCase());
+
+        return userRepository.updateUserRole(UUID.fromString(userId), userRole) > 0;
+    }
+
+    public boolean deleteUser(String id) {
+        return userRepository.updateUserStatus(UUID.fromString(id), UserStatus.NOT_ACTIVE) > 0;
+    }
+
+    public boolean activateUser(String id) {
+        return userRepository.updateUserStatus(UUID.fromString(id), UserStatus.ACTIVE) > 0;
     }
 
     public Optional<UserDto> getCurrentUser() {

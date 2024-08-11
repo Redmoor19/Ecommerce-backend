@@ -1,7 +1,7 @@
 package com.example.gameStore.services.interfaces;
 
-import com.example.gameStore.dtos.KeyCreationDto;
-import com.example.gameStore.entities.Game;
+import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
+import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
@@ -15,25 +15,15 @@ public interface GameService {
 
     Optional<SingleGameWithReviewsDto> getGameById(String id);
 
-    Optional<GameDto> createGame(GameDto gameDto);
+    Optional<GameDto> createGame(CreateGameRequestDto createGameRequestDto);
 
     Optional<GameDto> updateGame(String id, GameDto gameDto);
 
     boolean deleteGame(String id);
 
-    Optional<List<String>> getAllGenres();
+    List<String> getAllGenres();
 
-    Optional<List<Game>> getGamesByGenre(String genre);
-
-    List<GameDto> getCurrentUserGames();
-
-    List<GameDto> getCurrentUserFavouriteGames();
-
-    Optional<GameDto> addCurrentUserFavoriteGame(String gameId);
-
-    boolean deleteFavoriteGameOfCurrentUser(String gameId);
-
-    List<ReviewDto> getGameReviews(String gameId);
+    List<GameDto> getGamesByGenre(String genre);
 
     Optional<ReviewDto> createReview(String gameId, String userId, ReviewDto reviewDto);
 
@@ -41,9 +31,7 @@ public interface GameService {
 
     boolean deleteReview(String gameId, String reviewId);
 
-    Optional<ReviewDto> getReviewById(String gameId, String reviewId);
-
-    Optional<KeyCreationDto> addKeyToGame(KeyCreationDto keyCreationDto);
+    Optional<KeyCreationDto> addKeyToGame(String gameId);
 
     Optional<Integer> countGameKeys(String gameId);
 }
