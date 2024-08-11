@@ -56,8 +56,8 @@ public class UserServiceImpl implements UserService {
         if (optUser.isEmpty()) return Optional.empty();
         User user = optUser.get();
         modelMapper.map(updateUserDto, user);
-        userRepository.save(user);
-        return getUserById(user.getId());
+        User savedUser = userRepository.save(user);
+        return Optional.of(modelMapper.map(savedUser, UserDto.class));
     }
 
     public boolean updateUserRole(UpdateUserRoleRequestDto roleDto, String userId) {
