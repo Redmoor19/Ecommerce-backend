@@ -34,15 +34,6 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
             WHERE genres.genre = :genre
             """, nativeQuery = true)
     List<Game> getGamesByGenre(@Param("genre") String genre);
-
-    @Modifying
-    @Transactional
-    @Query(value = """
-            UPDATE t_game
-            SET quantity = quantity + 1
-            WHERE id = :gameId
-            """, nativeQuery = true)
-    int incrementQuantityById(@Param("gameId") UUID gameId);
 }
 
 

@@ -123,11 +123,10 @@ public class GameServiceImpl implements GameService {
         key.setValue(keyCreationDto.getValue());
         key.setGame(game);
         keyRepository.save(key);
-        int keysAdded = gameRepository.incrementQuantityById(keyCreationDto.getGameId());
-        if (keysAdded == 1) {
-            return Optional.of(modelMapper.map(key, KeyCreationDto.class));
-        }
-        return Optional.empty();
+        game.setQuantity(game.getQuantity() + 1);
+        gameRepository.save(game);
+        return Optional.of(modelMapper.map(key, KeyCreationDto.class));
+
     }
 
     @Override
