@@ -92,7 +92,10 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public boolean deleteGame(String id) {
+    public boolean deleteGame(String gameId) {
+        Optional<Game> deleteGame = gameRepository.findById(UUID.fromString(gameId));
+        if (deleteGame.isEmpty()) return false;
+        gameRepository.delete(deleteGame.get());
         return true;
     }
 

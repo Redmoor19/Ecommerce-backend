@@ -59,9 +59,9 @@ public class GameController {
         return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("games/{id}")
-    public ResponseEntity<Void> deleteGame(@PathVariable String id) {
-        if (gameService.deleteGame(id)) {
+    @DeleteMapping("games/{gameId}")
+    public ResponseEntity<Void> deleteGame(@PathVariable String gameId) {
+        if (gameService.deleteGame(gameId)) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);

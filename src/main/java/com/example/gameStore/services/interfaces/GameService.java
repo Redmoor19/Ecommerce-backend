@@ -21,7 +21,7 @@ public interface GameService {
 
     Optional<GameDto> updateGame(@RequestBody UpdateGameRequestDto updateGameRequestDto);
 
-    boolean deleteGame(String id);
+    boolean deleteGame(String gameId);
 
     List<String> getAllGenres();
 
