@@ -22,4 +22,6 @@ public interface AuthService {
     public Optional<LoggedInUserDto> updatePassword(String userId, UpdatePasswordRequestDto updatePasswordDto);
 
     public Optional<LoggedInUserDto> verifyEmail(String token);
+
+    boolean sendVerificationToken(String userId);
 }

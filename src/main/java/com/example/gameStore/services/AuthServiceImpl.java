@@ -34,16 +34,17 @@ public class AuthServiceImpl implements AuthService {
     public Optional<LoggedInUserDto> registerUser(CreateUserRequestDto newUser) {
         boolean passwordMatch = comparePasswords(newUser.getPassword(), newUser.getConfirmPassword());
         if (!passwordMatch) {
-            // Throw error when handler implemented
+            // Throw error password mismatch
             return Optional.empty();
         }
         User user = new User();
         modelMapper.map(newUser, user);
 
         String hashedPassword = PasswordAuthentication.hash(newUser.getPassword());
+        user.setPassword(hashedPassword);
+
         String token = TokenManager.generateRandomToken();
         String hashedToken = TokenManager.hashToken(token);
-        user.setPassword(hashedPassword);
         user.setConfirmEmailToken(hashedToken);
         User savedUser = userRepository.save(user);
 
@@ -55,11 +56,17 @@ public class AuthServiceImpl implements AuthService {
 
     public Optional<LoggedInUserDto> logUserIn(LoginUserRequestDto userCreds) {
         Optional<User> optUser = userRepository.findByEmail(userCreds.getEmail());
-        if (optUser.isEmpty()) return Optional.empty();
+        if (optUser.isEmpty()) {
+            //Throw error incorrect email (user not found)
+            return Optional.empty();
+        }
         User user = optUser.get();
 
         boolean passwordCorrect = PasswordAuthentication.verifyHash(userCreds.getPassword(), user.getPassword());
-        if (!passwordCorrect) return Optional.empty();
+        if (!passwordCorrect) {
+            //Throw error password incorrect
+            return Optional.empty();
+        }
 
         LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(user, UserDto.class));
         return Optional.of(loggedInUserDto);
@@ -69,7 +76,10 @@ public class AuthServiceImpl implements AuthService {
     public Optional<String> forgotPassword(ForgotPasswordUserDto forgotPasswordUserDto) {
         String email = forgotPasswordUserDto.getEmail();
         Optional<User> optUser = userRepository.findByEmail(email);
-        if (optUser.isEmpty()) return Optional.empty();
+        if (optUser.isEmpty()) {
+            //Throw error incorrect email (user not found)
+            return Optional.empty();
+        }
         User user = optUser.get();
 
         String token = TokenManager.generateRandomToken();
@@ -89,17 +99,28 @@ public class AuthServiceImpl implements AuthService {
 
     public Optional<LoggedInUserDto> resetPassword(String resetToken, ResetPasswordRequestDto resetPasswordDto) {
         boolean passwordMatch = comparePasswords(resetPasswordDto.getPassword(), resetPasswordDto.getConfirmPassword());
-        if (!passwordMatch) return Optional.empty();
+        if (!passwordMatch) {
+            // Throw error password mismatch
+            return Optional.empty();
+        }
 
         String hashedToken = TokenManager.hashToken(resetToken);
         Optional<User> optUser = userRepository.findByPasswordResetToken(hashedToken);
-        if (optUser.isEmpty()) return Optional.empty();
+        if (optUser.isEmpty()) {
+            //Throw error incorrect token user not found
+            return Optional.empty();
+        }
         User user = optUser.get();
-        if (user.getPasswordResetExpires().after(Timestamp.from(Instant.now()))) return Optional.empty();
+        if (user.getPasswordResetExpires().after(Timestamp.from(Instant.now()))) {
+            //Throw error token is expired
+            return Optional.empty();
+        }
 
         String hashedPassword = PasswordAuthentication.hash(resetPasswordDto.getPassword());
         user.setPassword(hashedPassword);
         user.setPasswordChangedAt(Timestamp.from(Instant.now()));
+        user.setPasswordResetToken(null);
+        user.setPasswordResetExpires(null);
         User savedUser = userRepository.save(user);
 
         LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(savedUser, UserDto.class));
@@ -108,10 +129,16 @@ public class AuthServiceImpl implements AuthService {
 
     public Optional<LoggedInUserDto> updatePassword(String userId, UpdatePasswordRequestDto updatePasswordDto) {
         boolean passwordMatch = comparePasswords(updatePasswordDto.getNewPassword(), updatePasswordDto.getNewPasswordConfirm());
-        if (!passwordMatch) return Optional.empty();
+        if (!passwordMatch) {
+            // Throw error password mismatch
+            return Optional.empty();
+        }
 
         Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
-        if (optUser.isEmpty()) return Optional.empty();
+        if (optUser.isEmpty()) {
+            //Throw error user not found (very unlikely, but still, as John Lennon once said let it be)
+            return Optional.empty();
+        }
         User user = optUser.get();
 
         String hashedPassword = PasswordAuthentication.hash(updatePasswordDto.getNewPassword());
@@ -128,9 +155,15 @@ public class AuthServiceImpl implements AuthService {
         String hashedToken = TokenManager.hashToken(token);
 
         Optional<User> optUser = userRepository.findByConfirmEmailToken(hashedToken);
-        if (optUser.isEmpty()) return Optional.empty();
+        if (optUser.isEmpty()) {
+            //Throw error invalid token
+            return Optional.empty();
+        }
         User user = optUser.get();
-        if (user.getActiveStatus() != UserStatus.UNVERIFIED) return Optional.empty();
+        if (user.getActiveStatus() != UserStatus.UNVERIFIED) {
+            //Throw error user status incorrect
+            return Optional.empty();
+        }
 
         user.setActiveStatus(UserStatus.ACTIVE);
         user.setConfirmEmailToken(null);
@@ -138,6 +171,23 @@ public class AuthServiceImpl implements AuthService {
 
         LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(savedUser, UserDto.class));
         return Optional.of(loggedInUserDto);
+    }
+
+    //No route implemented yet
+    public boolean sendVerificationToken(String userId) {
+        Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
+        if (optUser.isEmpty()) {
+            //Throw error user not found
+            return false;
+        }
+        User user = optUser.get();
+
+        String token = TokenManager.generateRandomToken();
+        String hashedToken = TokenManager.hashToken(token);
+        user.setConfirmEmailToken(hashedToken);
+        // Email service, send an url, IMPLEMENT AFTER SERVICE IS AVAILABLE
+
+        return true;
     }
 
     private boolean comparePasswords(String password, String passwordConfirm) {
