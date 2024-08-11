@@ -31,7 +31,7 @@ public interface GameService {
 
     boolean deleteReview(String gameId, String reviewId);
 
-    Optional<KeyCreationDto> addKeyToGame(KeyCreationDto keyCreationDto);
+    Optional<KeyCreationDto> addKeyToGame(String gameId);
 
     Optional<Integer> countGameKeys(String gameId);
 }

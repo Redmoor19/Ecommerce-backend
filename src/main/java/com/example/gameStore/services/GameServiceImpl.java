@@ -116,11 +116,10 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<KeyCreationDto> addKeyToGame(KeyCreationDto keyCreationDto) {
-        Game game = gameRepository.findById(keyCreationDto.getGameId())
-                .orElseThrow(() -> new RuntimeException("Game not found with ID: " + keyCreationDto.getGameId()));
+    public Optional<KeyCreationDto> addKeyToGame(String gameId) {
+        Game game = gameRepository.findById(UUID.fromString(gameId))
+                .orElseThrow(() -> new RuntimeException("Game not found with ID: " + gameId));
         Key key = new Key();
-        key.setValue(keyCreationDto.getValue());
         key.setGame(game);
         keyRepository.save(key);
         game.setQuantity(game.getQuantity() + 1);

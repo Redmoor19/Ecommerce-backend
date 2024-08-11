@@ -1,5 +1,7 @@
 package com.example.gameStore.dtos.KeyDto;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,6 +14,5 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class KeyCreationDto {
-    private UUID value;
     private UUID gameId;
 }

@@ -106,9 +106,9 @@ public class GameController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping("games/keys")
-    public ResponseEntity<KeyCreationDto> addKeyToGame(@RequestBody KeyCreationDto keyCreationDto) {
-        Optional<KeyCreationDto> key = gameService.addKeyToGame(keyCreationDto);
+    @PostMapping("games/{gameId}/keys")
+    public ResponseEntity<KeyCreationDto> addKeyToGame(@PathVariable String gameId) {
+        Optional<KeyCreationDto> key = gameService.addKeyToGame(gameId);
         return key.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
