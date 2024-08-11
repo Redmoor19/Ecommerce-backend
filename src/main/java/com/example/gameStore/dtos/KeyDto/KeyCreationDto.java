@@ -1,4 +1,4 @@
-package com.example.gameStore.dtos;
+package com.example.gameStore.dtos.KeyDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

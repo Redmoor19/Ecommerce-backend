@@ -4,9 +4,8 @@ package com.example.gameStore.controllers;
 import com.example.gameStore.dtos.GameDtos.CreateGameDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
+import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
-import com.example.gameStore.dtos.KeyCreationDto;
-import com.example.gameStore.entities.Game;
 import com.example.gameStore.services.interfaces.GameService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("api/v1/")
 @AllArgsConstructor
-public class GamesController {
+public class GameController {
 
     @Autowired
     private final GameService gameService;
@@ -69,24 +68,22 @@ public class GamesController {
 
     @GetMapping("games/genres")
     public ResponseEntity<List<String>> getAllGenres() {
-        Optional<List<String>> genreList = gameService.getAllGenres();
-        return genreList.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
+        List<String> genreList = gameService.getAllGenres();
+        if (genreList.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(genreList);
     }
 
     @GetMapping("games/genres/{genre}")
-    public ResponseEntity<List<Game>> getGamesByGenre(@PathVariable String genre) {
-        Optional<List<Game>> gamesByGenre = gameService.getGamesByGenre(genre);
-        return gamesByGenre.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
-    }
-
-    @GetMapping("users/me/games")
-    public ResponseEntity<List<GameDto>> getCurrentUserGames() {
-        List<GameDto> games = gameService.getCurrentUserGames();
-        if (games.isEmpty()) {
+    public ResponseEntity<List<GameDto>> getGamesByGenre(@PathVariable String genre) {
+        List<GameDto> gamesByGenre = gameService.getGamesByGenre(genre);
+        if (gamesByGenre.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(games);
+        return ResponseEntity.ok(gamesByGenre);
     }
+
 
     // I pass userId through URL temporarily since I can't get ID from request. Remember to delete after auth is complete!
     @PostMapping("games/{gameId}/reviews/{userId}")
@@ -107,12 +104,6 @@ public class GamesController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-
-    @GetMapping("games/{gameId}/reviews/{reviewId}")
-    public ResponseEntity<ReviewDto> getReviewById(@PathVariable String gameId, @PathVariable String reviewId) {
-        Optional<ReviewDto> game = gameService.getReviewById(gameId, reviewId);
-        return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("games/keys")

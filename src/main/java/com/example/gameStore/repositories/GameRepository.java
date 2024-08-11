@@ -23,7 +23,7 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
     @Query(value = """
             SELECT unnest(enum_range(NULL::e_game_genre))
             """, nativeQuery = true)
-    Optional<List<String>> getAllGenresList();
+    List<String> getAllGenresList();
 
     @Query(value = """
             SELECT t_game.*
@@ -31,7 +31,7 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
             JOIN genres ON t_game.id = genres.genre_value
             WHERE genres.genre = :genre
             """, nativeQuery = true)
-    Optional<List<Game>> getGamesByGenre(@Param("genre") String genre);
+    List<Game> getGamesByGenre(@Param("genre") String genre);
 }
 
 
