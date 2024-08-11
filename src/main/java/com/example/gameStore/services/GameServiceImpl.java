@@ -126,7 +126,6 @@ public class GameServiceImpl implements GameService {
         game.setQuantity(game.getQuantity() + 1);
         gameRepository.save(game);
         return Optional.of(modelMapper.map(key, KeyCreationDto.class));
-
     }
 
     @Override
