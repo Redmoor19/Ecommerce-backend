@@ -101,6 +101,21 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
+    public Optional<GameDto> activateGame(String gameId, boolean value) {
+        Optional<Game> updateGame = gameRepository.findById(UUID.fromString(gameId));
+        if (updateGame.isEmpty() || updateGame.get().getQuantity() == 0) return Optional.empty();
+
+        Game activatingGame = updateGame.get();
+        if (activatingGame.isActive() != value) {
+            activatingGame.setActive(value);
+            gameRepository.save(activatingGame);
+            return Optional.of(modelMapper.map(activatingGame, GameDto.class));
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
     public List<String> getAllGenres() {
         return gameRepository.getAllGenresList();
     }

@@ -68,6 +68,12 @@ public class GameController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    @PatchMapping("games/{gameId}/{value}")
+    public ResponseEntity<GameDto> activateGame(@PathVariable String gameId, @PathVariable boolean value) {
+        Optional<GameDto> game = gameService.activateGame(gameId, value);
+        return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @GetMapping("games/genres")
     public ResponseEntity<List<String>> getAllGenres() {
         List<String> genreList = gameService.getAllGenres();

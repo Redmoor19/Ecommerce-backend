@@ -24,6 +24,8 @@ public interface GameService {
 
     boolean deleteGame(String gameId);
 
+    Optional<GameDto> activateGame(String gameId, boolean value);
+
     List<String> getAllGenres();
 
     List<GameDto> getGamesByGenre(String genre);
