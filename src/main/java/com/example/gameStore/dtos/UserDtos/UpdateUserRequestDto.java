@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class UpdateUserRequestDto {
-    private String username;
+    private String name;
     private String email;
     private LocalDate birthDate;
     private String address;

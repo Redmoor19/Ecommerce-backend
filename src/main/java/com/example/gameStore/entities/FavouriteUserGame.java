@@ -19,7 +19,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "t_favourite", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "game_id"}))
+@Table(name = "favourite", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "game_id"}))
 public class FavouriteUserGame {
     @EmbeddedId
     private FavouriteUserGameId id;

@@ -24,7 +24,7 @@ public interface OrderService {
 
     Optional<OrderDto> cleanCurrentOrder(String orderId);
 
-    Optional<OrderDto> checkoutCurrentOrder();
+    Optional<OrderDto> checkoutCurrentOrder(String userId);
 
     Optional<OrderDto> createNewOrder(Optional<UserDto> userDto);
 }

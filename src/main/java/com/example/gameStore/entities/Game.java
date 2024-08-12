@@ -29,7 +29,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "t_game")
+@Table(name = "game")
 public class Game {
 
     @Id
@@ -40,7 +40,7 @@ public class Game {
     private String name;
 
     @ElementCollection(targetClass = Genre.class)
-    @JoinTable(name = "genres", joinColumns = @JoinColumn(name = "genre_value"))
+    @JoinTable(name = "genre", joinColumns = @JoinColumn(name = "genre_value"))
     @Enumerated(EnumType.STRING)
     @Column(name = "genre")
     private List<Genre> genreList;

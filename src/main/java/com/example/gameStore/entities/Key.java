@@ -23,7 +23,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "t_key")
+@Table(name = "key")
 public class Key {
 
     @ManyToOne(cascade = CascadeType.PERSIST)

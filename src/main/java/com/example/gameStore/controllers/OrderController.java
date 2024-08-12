@@ -100,9 +100,9 @@ public class OrderController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping("users/me/orders/current/checkout")
-    public ResponseEntity<OrderDto> checkoutCurrentOrder() {
-        return orderService.checkoutCurrentOrder()
+    @PostMapping("users/me/orders/current/checkout/{user_id}")
+    public ResponseEntity<OrderDto> checkoutCurrentOrder(@PathVariable(required = true, name = "user_id") String user_id) {
+        return orderService.checkoutCurrentOrder(user_id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
