@@ -45,13 +45,8 @@ public class GameServiceImpl implements GameService {
         if (list1.size() != list2.size()) {
             return true;
         }
+        return !list1.equals(list2);
 
-        for (int i = 0; i < list1.size(); i++) {
-            if (!list1.get(i).equals(list2.get(i))) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
