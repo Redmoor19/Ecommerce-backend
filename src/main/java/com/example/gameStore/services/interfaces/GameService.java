@@ -26,11 +26,7 @@ public interface GameService {
 
     Optional<GameDto> activateGame(String gameId, boolean value);
 
-    List<String> getAllGenres();
-
     List<GameDto> getGamesByGenre(String genre);
-
-    List<String> getAllPlayerSupport();
 
     List<GameDto> getGamesByPlayerSupport(String playerSupport);
 

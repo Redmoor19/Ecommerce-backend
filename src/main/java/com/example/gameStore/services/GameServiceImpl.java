@@ -12,6 +12,7 @@ import com.example.gameStore.entities.Game;
 import com.example.gameStore.entities.Key;
 import com.example.gameStore.entities.Review;
 import com.example.gameStore.entities.User;
+import com.example.gameStore.enums.Genre;
 import com.example.gameStore.repositories.GameRepository;
 import com.example.gameStore.repositories.KeyRepository;
 import com.example.gameStore.repositories.ReviewRepository;
@@ -46,7 +47,6 @@ public class GameServiceImpl implements GameService {
             return true;
         }
         return !list1.equals(list2);
-
     }
 
     @Override
@@ -112,20 +112,11 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public List<String> getAllGenres() {
-        return gameRepository.getAllGenresList();
-    }
-
-    @Override
     public List<GameDto> getGamesByGenre(String genre) {
-        List<Game> gamesByGenre = gameRepository.getGamesByGenre(genre);
+        Genre searchingGenre = Genre.fromString(genre);
+        List<Game> gamesByGenre = gameRepository.getGamesByGenre(searchingGenre);
         return modelMapper.map(gamesByGenre, new TypeToken<List<GameDto>>() {
         }.getType());
-    }
-
-    @Override
-    public List<String> getAllPlayerSupport() {
-        return gameRepository.getAllPlayerSupportList();
     }
 
     @Override

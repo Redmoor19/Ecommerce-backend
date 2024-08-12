@@ -8,6 +8,8 @@ import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
 import com.example.gameStore.dtos.ReviewDtos.CreateOrUpdateReviewRequestDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
+import com.example.gameStore.enums.Genre;
+import com.example.gameStore.enums.PlayerSupport;
 import com.example.gameStore.services.interfaces.GameService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +78,7 @@ public class GameController {
 
     @GetMapping("games/genres")
     public ResponseEntity<List<String>> getAllGenres() {
-        List<String> genreList = gameService.getAllGenres();
+        List<String> genreList = Genre.getAllGenres();
         if (genreList.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -94,7 +96,7 @@ public class GameController {
 
     @GetMapping("games/player-support")
     public ResponseEntity<List<String>> getAllPlayerSupport() {
-        List<String> playerSupport = gameService.getAllPlayerSupport();
+        List<String> playerSupport = PlayerSupport.getAllPlayerSupport();
         if (playerSupport.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
