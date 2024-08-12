@@ -5,9 +5,9 @@ import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
+import com.example.gameStore.dtos.ReviewDtos.CreateOrUpdateReviewRequestDto;
 import com.example.gameStore.dtos.ReviewDtos.EmbeddedReviewDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
-import com.example.gameStore.dtos.ReviewDtos.UpdateReviewRequestDto;
 import com.example.gameStore.entities.Game;
 import com.example.gameStore.entities.Key;
 import com.example.gameStore.entities.Review;
@@ -40,6 +40,19 @@ public class GameServiceImpl implements GameService {
     private ReviewRepository reviewRepository;
     @Autowired
     private UserRepository userRepository;
+
+    private static <E extends Enum<E>> boolean areNotEnumListsEquals(List<E> list1, List<E> list2) {
+        if (list1.size() != list2.size()) {
+            return true;
+        }
+
+        for (int i = 0; i < list1.size(); i++) {
+            if (!list1.get(i).equals(list2.get(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     public List<GameDto> findAllGames() {
@@ -128,7 +141,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<ReviewDto> createReview(String gameId, String userId, ReviewDto reviewDto) {
+    public Optional<ReviewDto> createReview(String gameId, String userId, CreateOrUpdateReviewRequestDto reviewDto) {
         Review review = modelMapper.map(reviewDto, Review.class);
         Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
         Optional<Game> optGame = gameRepository.findById(UUID.fromString(gameId));
@@ -141,35 +154,34 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<ReviewDto> updateReview(String userId, String gameId, UpdateReviewRequestDto updateReviewRequestDto) {
+    public Optional<ReviewDto> updateReview(String reviewId, String userId, CreateOrUpdateReviewRequestDto createOrUpdateReviewRequestDto) {
+        Optional<Review> optionalUpdatingReview = reviewRepository.findById(UUID.fromString(reviewId));
         Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
-        Optional<Game> optGame = gameRepository.findById(UUID.fromString(gameId));
-        if (optUser.isEmpty() || optGame.isEmpty()) return Optional.empty();
-        Optional<Review> optionalUpdatingReview = reviewRepository.findById(updateReviewRequestDto.getId());
-        if (optionalUpdatingReview.isEmpty()
-                || !optionalUpdatingReview.get().getUserId().getId().equals(optUser.get().getId())
-                || !optionalUpdatingReview.get().getGameId().getId().equals(optGame.get().getId()))
+        if (optUser.isEmpty()) return Optional.empty();
+        if (optionalUpdatingReview.isEmpty() || !optionalUpdatingReview.get().getUserId().getId().equals(optUser.get().getId()))
             return Optional.empty();
         Review updatedReview = optionalUpdatingReview.get();
-        updatedReview.setDescription(updateReviewRequestDto.getDescription());
-        updatedReview.setStarRating(updateReviewRequestDto.getStarRating());
+        Game updatingGame = gameRepository.findById(updatedReview.getGameId().getId())
+                .orElseThrow(() -> new NoSuchElementException("Game not found with ID: " + updatedReview.getGameId().getId()));
+        updatedReview.setDescription(createOrUpdateReviewRequestDto.getDescription());
+        updatedReview.setStarRating(createOrUpdateReviewRequestDto.getStarRating());
         reviewRepository.save(updatedReview);
-        updateGameRating(optGame.get());
+        updateGameRating(updatingGame);
         return Optional.of(modelMapper.map(updatedReview, ReviewDto.class));
     }
 
     @Override
-    public boolean deleteReview(String gameId, String reviewId, String userId) {
+    public boolean deleteReview(String reviewId, String userId) {
         Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
-        Optional<Game> optGame = gameRepository.findById(UUID.fromString(gameId));
-        if (optUser.isEmpty() || optGame.isEmpty()) return false;
+        if (optUser.isEmpty()) return false;
         Optional<Review> optionalDeletingReview = reviewRepository.findById(UUID.fromString(reviewId));
         if (optionalDeletingReview.isEmpty()
-                || !optionalDeletingReview.get().getUserId().getId().equals(optUser.get().getId())
-                || !optionalDeletingReview.get().getGameId().getId().equals(optGame.get().getId()))
+                || !optionalDeletingReview.get().getUserId().getId().equals(optUser.get().getId()))
             return false;
+        Game updatingGame = gameRepository.findById(optionalDeletingReview.get().getGameId().getId())
+                .orElseThrow(() -> new NoSuchElementException("Game not found with ID: " + optionalDeletingReview.get().getGameId().getId()));
         reviewRepository.delete(optionalDeletingReview.get());
-        updateGameRating(optGame.get());
+        updateGameRating(updatingGame);
         return true;
     }
 
@@ -196,18 +208,5 @@ public class GameServiceImpl implements GameService {
         game.setAverageRating(newAverageRating.orElseThrow(() ->
                 new NoSuchElementException("Average rating for the game could not be calculated!")));
         gameRepository.save(game);
-    }
-
-    private static <E extends Enum<E>> boolean areNotEnumListsEquals(List<E> list1, List<E> list2) {
-        if (list1.size() != list2.size()) {
-            return true;
-        }
-
-        for (int i = 0; i < list1.size(); i++) {
-            if (!list1.get(i).equals(list2.get(i))) {
-                return true;
-            }
-        }
-        return false;
     }
 }
