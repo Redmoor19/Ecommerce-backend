@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface ReviewRepository extends JpaRepository<Review, UUID> {
     @Query("""
             SELECT new com.example.gameStore.dtos.ReviewDtos.EmbeddedReviewDto(
-            r.id, r.description, r.starRating, r.createdAt, u.username
+            r.id, r.description, r.starRating, r.createdAt, u.name
             )
             FROM Review r
             JOIN r.userId u
