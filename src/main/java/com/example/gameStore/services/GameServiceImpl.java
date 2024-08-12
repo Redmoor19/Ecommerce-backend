@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,19 +40,6 @@ public class GameServiceImpl implements GameService {
     private ReviewRepository reviewRepository;
     @Autowired
     private UserRepository userRepository;
-
-    public static <E extends Enum<E>> boolean areNotEnumListsEquals(List<E> list1, List<E> list2) {
-        if (list1.size() != list2.size()) {
-            return true;
-        }
-
-        for (int i = 0; i < list1.size(); i++) {
-            if (!list1.get(i).equals(list2.get(i))) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     @Override
     public List<GameDto> findAllGames() {
@@ -148,6 +136,7 @@ public class GameServiceImpl implements GameService {
         review.setUserId(optUser.get());
         review.setGameId(optGame.get());
         Review savedReview = reviewRepository.save(review);
+        updateGameRating(optGame.get());
         return Optional.of(modelMapper.map(savedReview, ReviewDto.class));
     }
 
@@ -165,6 +154,7 @@ public class GameServiceImpl implements GameService {
         updatedReview.setDescription(updateReviewRequestDto.getDescription());
         updatedReview.setStarRating(updateReviewRequestDto.getStarRating());
         reviewRepository.save(updatedReview);
+        updateGameRating(optGame.get());
         return Optional.of(modelMapper.map(updatedReview, ReviewDto.class));
     }
 
@@ -179,6 +169,7 @@ public class GameServiceImpl implements GameService {
                 || !optionalDeletingReview.get().getGameId().getId().equals(optGame.get().getId()))
             return false;
         reviewRepository.delete(optionalDeletingReview.get());
+        updateGameRating(optGame.get());
         return true;
     }
 
@@ -198,5 +189,25 @@ public class GameServiceImpl implements GameService {
     public Optional<Integer> countGameKeys(String gameId) {
         UUID convertedGameId = UUID.fromString(gameId);
         return gameRepository.getGameKeysAmount(convertedGameId);
+    }
+
+    private void updateGameRating(Game game) {
+        Optional<Float> newAverageRating = reviewRepository.averageRating(game.getId());
+        game.setAverageRating(newAverageRating.orElseThrow(() ->
+                new NoSuchElementException("Average rating for the game could not be calculated!")));
+        gameRepository.save(game);
+    }
+
+    private static <E extends Enum<E>> boolean areNotEnumListsEquals(List<E> list1, List<E> list2) {
+        if (list1.size() != list2.size()) {
+            return true;
+        }
+
+        for (int i = 0; i < list1.size(); i++) {
+            if (!list1.get(i).equals(list2.get(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 }

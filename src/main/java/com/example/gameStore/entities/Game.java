@@ -82,7 +82,7 @@ public class Game {
     private boolean isActive;
 
     @Column(name = "average_rating", nullable = false, columnDefinition = "NUMERIC(2, 1) DEFAULT 0")
-    private float rating;
+    private float averageRating;
 
     @PrePersist
     protected void onCreate() {
