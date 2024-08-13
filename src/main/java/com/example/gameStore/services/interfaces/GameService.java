@@ -13,7 +13,7 @@ public interface GameService {
 
     List<GameDto> findAllGames();
 
-    List<GameDto> findAllActiveGames();
+    List<GameDto> findAllActiveGames(String sortField, String sortOrder);
 
     Optional<SingleGameWithReviewsDto> getGameById(String id);
 

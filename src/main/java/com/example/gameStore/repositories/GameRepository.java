@@ -1,6 +1,8 @@
 package com.example.gameStore.repositories;
 
 import com.example.gameStore.entities.Game;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,12 +14,8 @@ import java.util.UUID;
 
 @Repository
 public interface GameRepository extends JpaRepository<Game, UUID> {
-    @Query(value = """
-            SELECT *
-            FROM game
-            WHERE is_active = true;
-            """, nativeQuery = true)
-    List<Game> findAllActiveGames();
+
+    Page<Game> findAllByIsActiveTrue(Pageable pageable);
 
     @Query(value = """
             SELECT COUNT(*)

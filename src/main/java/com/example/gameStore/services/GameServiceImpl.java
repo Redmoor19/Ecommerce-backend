@@ -21,12 +21,18 @@ import com.example.gameStore.utilities.GameUtilities;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -48,9 +54,20 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public List<GameDto> findAllActiveGames() {
-        List<Game> games = gameRepository.findAllActiveGames();
-        return games.stream().map(game -> modelMapper.map(game, GameDto.class)).toList();
+    public List<GameDto> findAllActiveGames(String sortField, String sortOrder) {
+        boolean isValidField = Arrays.stream(Game.class.getDeclaredFields())
+                .anyMatch(f -> f.getName().equals(sortField));
+
+        if (!isValidField) {
+            throw new IllegalArgumentException("Invalid sort field: " + sortField);
+        }
+        Sort.Direction direction = Sort.Direction.fromString(sortOrder);
+        Pageable pageable = PageRequest.of(0, 1000, Sort.by(direction, sortField));
+        Page<Game> page = gameRepository.findAllByIsActiveTrue(pageable);
+        return page.getContent()
+                .stream()
+                .map(game -> modelMapper.map(game, GameDto.class))
+                .collect(Collectors.toList());
     }
 
     @Override
