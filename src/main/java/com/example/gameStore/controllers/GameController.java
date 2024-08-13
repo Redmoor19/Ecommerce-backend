@@ -40,6 +40,15 @@ public class GameController {
         return ResponseEntity.ok(games);
     }
 
+    @GetMapping("games/active")
+    public ResponseEntity<List<GameDto>> findAllActiveGames() {
+        List<GameDto> games = gameService.findAllActiveGames();
+        if (games.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(games);
+    }
+
     @GetMapping("games/{id}")
     public ResponseEntity<SingleGameWithReviewsDto> getGameById(@PathVariable(required = true, name = "id") String id) {
         Optional<SingleGameWithReviewsDto> gameWithReviews = gameService.getGameById(id);

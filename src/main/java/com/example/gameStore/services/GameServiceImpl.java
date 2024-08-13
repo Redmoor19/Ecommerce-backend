@@ -48,6 +48,12 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
+    public List<GameDto> findAllActiveGames() {
+        List<Game> games = gameRepository.findAllActiveGames();
+        return games.stream().map(game -> modelMapper.map(game, GameDto.class)).toList();
+    }
+
+    @Override
     public Optional<SingleGameWithReviewsDto> getGameById(String id) {
         Optional<Game> game = gameRepository.findById(UUID.fromString(id));
         if (game.isEmpty()) return Optional.empty();

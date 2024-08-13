@@ -13,6 +13,8 @@ public interface GameService {
 
     List<GameDto> findAllGames();
 
+    List<GameDto> findAllActiveGames();
+
     Optional<SingleGameWithReviewsDto> getGameById(String id);
 
     Optional<GameDto> createGame(CreateGameRequestDto createGameRequestDto);
