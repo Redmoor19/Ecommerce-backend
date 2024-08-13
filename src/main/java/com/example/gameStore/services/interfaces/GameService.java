@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public interface GameService {
 
-    List<GameDto> findAllGames();
+    List<GameDto> findAllGames(String sortField, String sortOrder);
 
     List<GameDto> findAllActiveGames(String sortField, String sortOrder);
 

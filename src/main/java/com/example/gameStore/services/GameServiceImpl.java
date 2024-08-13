@@ -48,9 +48,20 @@ public class GameServiceImpl implements GameService {
     private UserRepository userRepository;
 
     @Override
-    public List<GameDto> findAllGames() {
-        List<Game> games = gameRepository.findAll();
-        return games.stream().map(game -> modelMapper.map(game, GameDto.class)).toList();
+    public List<GameDto> findAllGames(String sortField, String sortOrder) {
+        boolean isValidField = Arrays.stream(Game.class.getDeclaredFields())
+                .anyMatch(f -> f.getName().equals(sortField));
+
+        if (!isValidField) {
+            throw new IllegalArgumentException("Invalid sort field: " + sortField);
+        }
+        Sort.Direction direction = Sort.Direction.fromString(sortOrder);
+        Pageable pageable = PageRequest.of(0, 1000, Sort.by(direction, sortField));
+        Page<Game> page = gameRepository.findAll(pageable);
+        return page.getContent()
+                .stream()
+                .map(game -> modelMapper.map(game, GameDto.class))
+                .collect(Collectors.toList());
     }
 
     @Override

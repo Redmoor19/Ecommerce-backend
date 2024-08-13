@@ -33,8 +33,11 @@ public class GameController {
     private final GameService gameService;
 
     @GetMapping("games")
-    public ResponseEntity<List<GameDto>> findAllGames() {
-        List<GameDto> games = gameService.findAllGames();
+    public ResponseEntity<List<GameDto>> findAllGames(
+            @RequestParam(value = "sort", defaultValue = "name") String sortField,
+            @RequestParam(value = "order", defaultValue = "asc") String sortOrder
+    ) {
+        List<GameDto> games = gameService.findAllGames(sortField, sortOrder);
         if (games.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
