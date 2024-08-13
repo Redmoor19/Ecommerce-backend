@@ -18,6 +18,12 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
 
     Page<Game> findAllByIsActiveTrue(Pageable pageable);
 
+    @Query("SELECT g FROM Game g WHERE LOWER(g.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+    Page<Game> findByNameContainingIgnoreCase(@Param("name") String name, Pageable pageable);
+
+    @Query("SELECT g FROM Game g WHERE LOWER(g.name) LIKE LOWER(CONCAT('%', :name, '%')) AND g.isActive = true")
+    Page<Game> findByNameContainingIgnoreCaseActiveTrue(@Param("name") String name, Pageable pageable);
+
     @Query(value = """
             SELECT COUNT(*)
             FROM key

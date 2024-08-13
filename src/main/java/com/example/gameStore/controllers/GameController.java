@@ -41,7 +41,8 @@ public class GameController {
             @RequestParam(value = "sort", defaultValue = "name") String sortField,
             @RequestParam(value = "order", defaultValue = "asc") String sortOrder,
             @RequestParam(value = "page", defaultValue = "0") String pageNumber,
-            @RequestParam(value = "size", defaultValue = "20") String pageSize
+            @RequestParam(value = "size", defaultValue = "20") String pageSize,
+            @RequestParam(value = "search", required = false) String searchKeyword
     ) {
         int convertedPageNumber, convertedPageSize;
         try {
@@ -50,7 +51,7 @@ public class GameController {
         } catch (Exception e) {
             throw new NumberFormatException("Wrong data format for page and size");
         }
-        List<GameDto> games = gameService.findAllGames(sortField, sortOrder, convertedPageNumber, convertedPageSize);
+        List<GameDto> games = gameService.findAllGames(sortField, sortOrder, convertedPageNumber, convertedPageSize, searchKeyword);
         if (games.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -62,7 +63,8 @@ public class GameController {
             @RequestParam(value = "sort", defaultValue = "name") String sortField,
             @RequestParam(value = "order", defaultValue = "asc") String sortOrder,
             @RequestParam(value = "page", defaultValue = "0") String pageNumber,
-            @RequestParam(value = "size", defaultValue = "20") String pageSize) {
+            @RequestParam(value = "size", defaultValue = "20") String pageSize,
+            @RequestParam(value = "search", required = false) String searchKeyword) {
         int convertedPageNumber, convertedPageSize;
         try {
             convertedPageNumber = Integer.parseInt(pageNumber);
@@ -70,7 +72,7 @@ public class GameController {
         } catch (Exception e) {
             throw new NumberFormatException("Wrong data format for page and size");
         }
-        List<GameDto> games = gameService.findAllActiveGames(sortField, sortOrder, convertedPageNumber, convertedPageSize);
+        List<GameDto> games = gameService.findAllActiveGames(sortField, sortOrder, convertedPageNumber, convertedPageSize, searchKeyword);
         if (games.isEmpty()) {
             return ResponseEntity.noContent().build();
         }

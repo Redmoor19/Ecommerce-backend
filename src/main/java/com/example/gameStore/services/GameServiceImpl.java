@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -57,7 +56,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public List<GameDto> findAllGames(String sortField, String sortOrder, int pageNumber, int pageSize) {
+    public List<GameDto> findAllGames(String sortField, String sortOrder, int pageNumber, int pageSize, String searchKeyword) {
         boolean isValidField = Arrays.stream(Game.class.getDeclaredFields())
                 .anyMatch(f -> f.getName().equals(sortField));
 
@@ -66,7 +65,14 @@ public class GameServiceImpl implements GameService {
         }
         Sort.Direction direction = Sort.Direction.fromString(sortOrder);
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(direction, sortField));
-        Page<Game> page = gameRepository.findAll(pageable);
+
+        Page<Game> page;
+        if (searchKeyword == null || searchKeyword.trim().isEmpty()) {
+            page = gameRepository.findAll(pageable);
+        } else {
+            page = gameRepository.findByNameContainingIgnoreCase(searchKeyword, pageable);
+        }
+
         return page.getContent()
                 .stream()
                 .map(game -> modelMapper.map(game, GameDto.class))
@@ -74,7 +80,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public List<GameDto> findAllActiveGames(String sortField, String sortOrder, int pageNumber, int pageSize) {
+    public List<GameDto> findAllActiveGames(String sortField, String sortOrder, int pageNumber, int pageSize, String searchKeyword) {
         boolean isValidField = Arrays.stream(Game.class.getDeclaredFields())
                 .anyMatch(f -> f.getName().equals(sortField));
 
@@ -83,7 +89,14 @@ public class GameServiceImpl implements GameService {
         }
         Sort.Direction direction = Sort.Direction.fromString(sortOrder);
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(direction, sortField));
-        Page<Game> page = gameRepository.findAllByIsActiveTrue(pageable);
+
+        Page<Game> page;
+        if (searchKeyword == null || searchKeyword.trim().isEmpty()) {
+            page = gameRepository.findAllByIsActiveTrue(pageable);
+        } else {
+            page = gameRepository.findByNameContainingIgnoreCaseActiveTrue(searchKeyword, pageable);
+        }
+
         return page.getContent()
                 .stream()
                 .map(game -> modelMapper.map(game, GameDto.class))
