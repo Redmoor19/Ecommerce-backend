@@ -26,7 +26,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(
-        name = "t_review",
+        name = "review",
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "game_id"})
 )
 public class Review {

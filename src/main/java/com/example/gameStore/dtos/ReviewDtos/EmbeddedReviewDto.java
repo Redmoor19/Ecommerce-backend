@@ -17,5 +17,5 @@ public class EmbeddedReviewDto {
     private String reviewDescription;
     private int starRating;
     private Timestamp createdAt;
-    private String username;
+    private String name;
 }

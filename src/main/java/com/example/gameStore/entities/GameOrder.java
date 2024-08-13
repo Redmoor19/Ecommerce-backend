@@ -19,7 +19,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "t_game_order", uniqueConstraints = {@UniqueConstraint(columnNames = {"game_id", "order_id"})})
+@Table(name = "game_order", uniqueConstraints = {@UniqueConstraint(columnNames = {"game_id", "order_id"})})
 public class GameOrder {
     @EmbeddedId
     private GameOrderId id;
