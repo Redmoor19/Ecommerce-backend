@@ -3,7 +3,9 @@ package com.example.gameStore.services;
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
+import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
+import com.example.gameStore.dtos.ReviewDtos.CreateOrUpdateReviewRequestDto;
 import com.example.gameStore.dtos.ReviewDtos.EmbeddedReviewDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 import com.example.gameStore.entities.Game;
@@ -11,13 +13,11 @@ import com.example.gameStore.entities.Key;
 import com.example.gameStore.entities.Review;
 import com.example.gameStore.entities.User;
 import com.example.gameStore.enums.Genre;
-import com.example.gameStore.enums.PlayerSupport;
 import com.example.gameStore.repositories.GameRepository;
 import com.example.gameStore.repositories.KeyRepository;
 import com.example.gameStore.repositories.ReviewRepository;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.GameService;
-import com.example.gameStore.utilities.GameUtilities;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +26,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -46,6 +48,13 @@ public class GameServiceImpl implements GameService {
     private ReviewRepository reviewRepository;
     @Autowired
     private UserRepository userRepository;
+
+    private static <E extends Enum<E>> boolean areNotEnumListsEquals(List<E> list1, List<E> list2) {
+        if (list1.size() != list2.size()) {
+            return true;
+        }
+        return !list1.equals(list2);
+    }
 
     @Override
     public List<GameDto> findAllGames(String sortField, String sortOrder) {
@@ -94,39 +103,71 @@ public class GameServiceImpl implements GameService {
     @Override
     public Optional<GameDto> createGame(CreateGameRequestDto createGameRequestDto) {
         Game createGame = modelMapper.map(createGameRequestDto, Game.class);
-        createGame.setSku(GameUtilities.generateSku());
-        gameRepository.save(createGame);
-        return Optional.of(modelMapper.map(createGame, GameDto.class));
-
+        Game savedGame = gameRepository.save(createGame);
+        return Optional.of(modelMapper.map(savedGame, GameDto.class));
     }
 
     @Override
-    public Optional<GameDto> updateGame(String id, GameDto gameDto) {
-        return Optional.of(new GameDto(UUID.fromString(id), "Cyber City", List.of(Genre.ACTION), 92,
-                "http://example.com/thumb5.jpg", List.of("http://example.com/image5.jpg"),
-                "Cyber Devs", new Date(), "16GB RAM, 6GB GPU", List.of(PlayerSupport.ONLINE_COMPETITIVE),
-                49.99f, "An action-packed cyber adventure", "SKU11223", true, 1));
+    public Optional<GameDto> updateGame(@RequestBody UpdateGameRequestDto updateGameRequestDto) {
+        Optional<Game> updateGame = gameRepository.findById(updateGameRequestDto.getId());
+        if (updateGame.isEmpty()) return Optional.empty();
+        Game existingGame = updateGame.get();
+        if (areNotEnumListsEquals(existingGame.getGenreList(), updateGameRequestDto.getGenreList())) {
+            existingGame.setGenreList(updateGameRequestDto.getGenreList());
+        }
+        if (areNotEnumListsEquals(existingGame.getPlayerSupport(), updateGameRequestDto.getPlayerSupport())) {
+            existingGame.setPlayerSupport(updateGameRequestDto.getPlayerSupport());
+        }
+        modelMapper.map(updateGameRequestDto, existingGame);
+        Game savedGame = gameRepository.save(existingGame);
+        return Optional.of(modelMapper.map(savedGame, GameDto.class));
     }
 
     @Override
-    public boolean deleteGame(String id) {
-        return true;
+    public Optional<GameDto> deactivateGame(String gameId) {
+        Optional<Game> updateGame = gameRepository.findById(UUID.fromString(gameId));
+        if (updateGame.isEmpty()) return Optional.empty();
+
+        Game deactivatingGame = updateGame.get();
+        if (deactivatingGame.isActive()) {
+            deactivatingGame.setActive(false);
+            Game savedGame = gameRepository.save(deactivatingGame);
+            return Optional.of(modelMapper.map(savedGame, GameDto.class));
+        }
+        return Optional.empty();
     }
 
     @Override
-    public List<String> getAllGenres() {
-        return gameRepository.getAllGenresList();
+    public Optional<GameDto> activateGame(String gameId) {
+        Optional<Game> updateGame = gameRepository.findById(UUID.fromString(gameId));
+        if (updateGame.isEmpty() || updateGame.get().getQuantity() == 0) return Optional.empty();
+
+        Game activatingGame = updateGame.get();
+        if (!activatingGame.isActive()) {
+            activatingGame.setActive(true);
+            Game savedGame = gameRepository.save(activatingGame);
+            return Optional.of(modelMapper.map(savedGame, GameDto.class));
+        }
+        return Optional.empty();
     }
 
     @Override
     public List<GameDto> getGamesByGenre(String genre) {
-        List<Game> gamesByGenre = gameRepository.getGamesByGenre(genre);
+        Genre searchingGenre = Genre.fromString(genre);
+        List<Game> gamesByGenre = gameRepository.getGamesByGenre(searchingGenre);
         return modelMapper.map(gamesByGenre, new TypeToken<List<GameDto>>() {
         }.getType());
     }
 
     @Override
-    public Optional<ReviewDto> createReview(String gameId, String userId, ReviewDto reviewDto) {
+    public List<GameDto> getGamesByPlayerSupport(String playerSupport) {
+        List<Game> gamesByPlayerSupport = gameRepository.getGamesByPlayerSupport(playerSupport);
+        return modelMapper.map(gamesByPlayerSupport, new TypeToken<List<GameDto>>() {
+        }.getType());
+    }
+
+    @Override
+    public Optional<ReviewDto> createReview(String gameId, String userId, CreateOrUpdateReviewRequestDto reviewDto) {
         Review review = modelMapper.map(reviewDto, Review.class);
         Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
         Optional<Game> optGame = gameRepository.findById(UUID.fromString(gameId));
@@ -134,18 +175,39 @@ public class GameServiceImpl implements GameService {
         review.setUserId(optUser.get());
         review.setGameId(optGame.get());
         Review savedReview = reviewRepository.save(review);
+        updateGameRating(optGame.get());
         return Optional.of(modelMapper.map(savedReview, ReviewDto.class));
     }
 
     @Override
-    public Optional<ReviewDto> updateReview(String gameId, String reviewId) {
-        System.out.println("============================" + gameId + "***" + reviewId + "============================");
-        return Optional.empty();
+    public Optional<ReviewDto> updateReview(String reviewId, String userId, CreateOrUpdateReviewRequestDto createOrUpdateReviewRequestDto) {
+        Optional<Review> optionalUpdatingReview = reviewRepository.findById(UUID.fromString(reviewId));
+        Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
+        if (optUser.isEmpty()) return Optional.empty();
+        if (optionalUpdatingReview.isEmpty() || !optionalUpdatingReview.get().getUserId().getId().equals(optUser.get().getId()))
+            return Optional.empty();
+        Review updatedReview = optionalUpdatingReview.get();
+        Game updatingGame = gameRepository.findById(updatedReview.getGameId().getId())
+                .orElseThrow(() -> new NoSuchElementException("Game not found with ID: " + updatedReview.getGameId().getId()));
+        updatedReview.setDescription(createOrUpdateReviewRequestDto.getDescription());
+        updatedReview.setStarRating(createOrUpdateReviewRequestDto.getStarRating());
+        reviewRepository.save(updatedReview);
+        updateGameRating(updatingGame);
+        return Optional.of(modelMapper.map(updatedReview, ReviewDto.class));
     }
 
     @Override
-    public boolean deleteReview(String gameId, String reviewId) {
-        System.out.println("============================" + gameId + "***" + reviewId + "============================");
+    public boolean deleteReview(String reviewId, String userId) {
+        Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
+        if (optUser.isEmpty()) return false;
+        Optional<Review> optionalDeletingReview = reviewRepository.findById(UUID.fromString(reviewId));
+        if (optionalDeletingReview.isEmpty()
+                || !optionalDeletingReview.get().getUserId().getId().equals(optUser.get().getId()))
+            return false;
+        Game updatingGame = gameRepository.findById(optionalDeletingReview.get().getGameId().getId())
+                .orElseThrow(() -> new NoSuchElementException("Game not found with ID: " + optionalDeletingReview.get().getGameId().getId()));
+        reviewRepository.delete(optionalDeletingReview.get());
+        updateGameRating(updatingGame);
         return true;
     }
 
@@ -165,5 +227,12 @@ public class GameServiceImpl implements GameService {
     public Optional<Integer> countGameKeys(String gameId) {
         UUID convertedGameId = UUID.fromString(gameId);
         return gameRepository.getGameKeysAmount(convertedGameId);
+    }
+
+    private void updateGameRating(Game game) {
+        Optional<Float> newAverageRating = reviewRepository.averageRating(game.getId());
+        game.setAverageRating(newAverageRating.orElseThrow(() ->
+                new NoSuchElementException("Average rating for the game could not be calculated!")));
+        gameRepository.save(game);
     }
 }

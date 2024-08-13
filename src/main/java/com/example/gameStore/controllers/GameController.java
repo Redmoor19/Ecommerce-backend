@@ -4,8 +4,12 @@ package com.example.gameStore.controllers;
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
+import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
+import com.example.gameStore.dtos.ReviewDtos.CreateOrUpdateReviewRequestDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
+import com.example.gameStore.enums.Genre;
+import com.example.gameStore.enums.PlayerSupport;
 import com.example.gameStore.services.interfaces.GameService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,23 +71,27 @@ public class GameController {
         return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PatchMapping("games/{id}")
-    public ResponseEntity<GameDto> updateGame(@PathVariable String id, @RequestBody GameDto gameDto) {
-        Optional<GameDto> game = gameService.updateGame(id, gameDto);
+    @PatchMapping("games")
+    public ResponseEntity<GameDto> updateGame(@RequestBody UpdateGameRequestDto updateGameRequestDto) {
+        Optional<GameDto> game = gameService.updateGame(updateGameRequestDto);
         return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("games/{id}")
-    public ResponseEntity<Void> deleteGame(@PathVariable String id) {
-        if (gameService.deleteGame(id)) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @PatchMapping("games/deactivation/{gameId}")
+    public ResponseEntity<GameDto> deactivateGame(@PathVariable String gameId) {
+        Optional<GameDto> game = gameService.deactivateGame(gameId);
+        return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("games/activation/{gameId}")
+    public ResponseEntity<GameDto> activateGame(@PathVariable String gameId) {
+        Optional<GameDto> game = gameService.activateGame(gameId);
+        return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("games/genres")
     public ResponseEntity<List<String>> getAllGenres() {
-        List<String> genreList = gameService.getAllGenres();
+        List<String> genreList = Genre.getAllGenres();
         if (genreList.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -99,23 +107,41 @@ public class GameController {
         return ResponseEntity.ok(gamesByGenre);
     }
 
+    @GetMapping("games/player-support")
+    public ResponseEntity<List<String>> getAllPlayerSupport() {
+        List<String> playerSupport = PlayerSupport.getAllPlayerSupport();
+        if (playerSupport.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(playerSupport);
+    }
+
+    @GetMapping("games/player-support/{playerSupport}")
+    public ResponseEntity<List<GameDto>> getGamesByPlayerSupport(@PathVariable String playerSupport) {
+        List<GameDto> gamesByPlayerSupport = gameService.getGamesByPlayerSupport(playerSupport);
+        if (gamesByPlayerSupport.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(gamesByPlayerSupport);
+    }
+
 
     // I pass userId through URL temporarily since I can't get ID from request. Remember to delete after auth is complete!
     @PostMapping("games/{gameId}/reviews/{userId}")
-    public ResponseEntity<ReviewDto> createReview(@PathVariable String gameId, @PathVariable String userId, @RequestBody ReviewDto reviewDto) {
+    public ResponseEntity<ReviewDto> createReview(@PathVariable String gameId, @PathVariable String userId, @RequestBody CreateOrUpdateReviewRequestDto reviewDto) {
         Optional<ReviewDto> review = gameService.createReview(gameId, userId, reviewDto);
         return review.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PatchMapping("games/{gameId}/reviews/{reviewId}")
-    public ResponseEntity<ReviewDto> updateReview(@PathVariable String gameId, @PathVariable String reviewId) {
-        Optional<ReviewDto> review = gameService.updateReview(gameId, reviewId);
+    @PatchMapping("games/reviews/{reviewId}/user/{userId}")
+    public ResponseEntity<ReviewDto> updateReview(@PathVariable String reviewId, @PathVariable String userId, @RequestBody CreateOrUpdateReviewRequestDto createOrUpdateReviewRequestDto) {
+        Optional<ReviewDto> review = gameService.updateReview(reviewId, userId, createOrUpdateReviewRequestDto);
         return review.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("games/{gameId}/reviews/{reviewId}")
-    public ResponseEntity<ReviewDto> deleteReview(@PathVariable String gameId, @PathVariable String reviewId) {
-        if (gameService.deleteReview(gameId, reviewId)) {
+    @DeleteMapping("games/reviews/{reviewId}/user/{userId}")
+    public ResponseEntity<ReviewDto> deleteReview(@PathVariable String reviewId, @PathVariable String userId) {
+        if (gameService.deleteReview(reviewId, userId)) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
