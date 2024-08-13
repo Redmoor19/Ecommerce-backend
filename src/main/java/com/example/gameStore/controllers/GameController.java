@@ -62,17 +62,15 @@ public class GameController {
         return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("games/{gameId}")
-    public ResponseEntity<Void> deleteGame(@PathVariable String gameId) {
-        if (gameService.deleteGame(gameId)) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @PatchMapping("games/deactivation/{gameId}")
+    public ResponseEntity<GameDto> deactivateGame(@PathVariable String gameId) {
+        Optional<GameDto> game = gameService.deactivateGame(gameId);
+        return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PatchMapping("games/{gameId}/{value}")
-    public ResponseEntity<GameDto> activateGame(@PathVariable String gameId, @PathVariable boolean value) {
-        Optional<GameDto> game = gameService.activateGame(gameId, value);
+    @PatchMapping("games/activation/{gameId}")
+    public ResponseEntity<GameDto> activateGame(@PathVariable String gameId) {
+        Optional<GameDto> game = gameService.activateGame(gameId);
         return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 

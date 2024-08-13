@@ -22,9 +22,9 @@ public interface GameService {
 
     Optional<GameDto> updateGame(@RequestBody UpdateGameRequestDto updateGameRequestDto);
 
-    boolean deleteGame(String gameId);
+    Optional<GameDto> deactivateGame(String gameId);
 
-    Optional<GameDto> activateGame(String gameId, boolean value);
+    Optional<GameDto> activateGame(String gameId);
 
     List<GameDto> getGamesByGenre(String genre);
 

@@ -68,8 +68,8 @@ public class GameServiceImpl implements GameService {
     @Override
     public Optional<GameDto> createGame(CreateGameRequestDto createGameRequestDto) {
         Game createGame = modelMapper.map(createGameRequestDto, Game.class);
-        gameRepository.save(createGame);
-        return Optional.of(modelMapper.map(createGame, GameDto.class));
+        Game savedGame = gameRepository.save(createGame);
+        return Optional.of(modelMapper.map(savedGame, GameDto.class));
     }
 
     @Override
@@ -84,30 +84,35 @@ public class GameServiceImpl implements GameService {
             existingGame.setPlayerSupport(updateGameRequestDto.getPlayerSupport());
         }
         modelMapper.map(updateGameRequestDto, existingGame);
-        gameRepository.save(existingGame);
-        return Optional.of(modelMapper.map(existingGame, GameDto.class));
+        Game savedGame = gameRepository.save(existingGame);
+        return Optional.of(modelMapper.map(savedGame, GameDto.class));
     }
 
     @Override
-    public boolean deleteGame(String gameId) {
-        Optional<Game> deleteGame = gameRepository.findById(UUID.fromString(gameId));
-        if (deleteGame.isEmpty()) return false;
-        gameRepository.delete(deleteGame.get());
-        return true;
+    public Optional<GameDto> deactivateGame(String gameId) {
+        Optional<Game> updateGame = gameRepository.findById(UUID.fromString(gameId));
+        if (updateGame.isEmpty()) return Optional.empty();
+
+        Game deactivatingGame = updateGame.get();
+        if (deactivatingGame.isActive()) {
+            deactivatingGame.setActive(false);
+            Game savedGame = gameRepository.save(deactivatingGame);
+            return Optional.of(modelMapper.map(savedGame, GameDto.class));
+        }
+        return Optional.empty();
     }
 
     @Override
-    public Optional<GameDto> activateGame(String gameId, boolean value) {
+    public Optional<GameDto> activateGame(String gameId) {
         Optional<Game> updateGame = gameRepository.findById(UUID.fromString(gameId));
         if (updateGame.isEmpty() || updateGame.get().getQuantity() == 0) return Optional.empty();
 
         Game activatingGame = updateGame.get();
-        if (activatingGame.isActive() != value) {
-            activatingGame.setActive(value);
-            gameRepository.save(activatingGame);
-            return Optional.of(modelMapper.map(activatingGame, GameDto.class));
+        if (!activatingGame.isActive()) {
+            activatingGame.setActive(true);
+            Game savedGame = gameRepository.save(activatingGame);
+            return Optional.of(modelMapper.map(savedGame, GameDto.class));
         }
-
         return Optional.empty();
     }
 
