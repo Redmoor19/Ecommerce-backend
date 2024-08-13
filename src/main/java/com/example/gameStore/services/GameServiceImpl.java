@@ -57,7 +57,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public List<GameDto> findAllGames(String sortField, String sortOrder) {
+    public List<GameDto> findAllGames(String sortField, String sortOrder, int pageNumber, int pageSize) {
         boolean isValidField = Arrays.stream(Game.class.getDeclaredFields())
                 .anyMatch(f -> f.getName().equals(sortField));
 
@@ -65,7 +65,7 @@ public class GameServiceImpl implements GameService {
             throw new IllegalArgumentException("Invalid sort field: " + sortField);
         }
         Sort.Direction direction = Sort.Direction.fromString(sortOrder);
-        Pageable pageable = PageRequest.of(0, 1000, Sort.by(direction, sortField));
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(direction, sortField));
         Page<Game> page = gameRepository.findAll(pageable);
         return page.getContent()
                 .stream()
@@ -74,7 +74,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public List<GameDto> findAllActiveGames(String sortField, String sortOrder) {
+    public List<GameDto> findAllActiveGames(String sortField, String sortOrder, int pageNumber, int pageSize) {
         boolean isValidField = Arrays.stream(Game.class.getDeclaredFields())
                 .anyMatch(f -> f.getName().equals(sortField));
 
@@ -82,7 +82,7 @@ public class GameServiceImpl implements GameService {
             throw new IllegalArgumentException("Invalid sort field: " + sortField);
         }
         Sort.Direction direction = Sort.Direction.fromString(sortOrder);
-        Pageable pageable = PageRequest.of(0, 1000, Sort.by(direction, sortField));
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(direction, sortField));
         Page<Game> page = gameRepository.findAllByIsActiveTrue(pageable);
         return page.getContent()
                 .stream()
