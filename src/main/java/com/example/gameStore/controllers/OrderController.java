@@ -48,9 +48,10 @@ public class OrderController {
     }
 
     @GetMapping("orders/{id}")
-    public ResponseEntity<OrderDto> findOrderById(@PathVariable(required = true, name = "id") String id) {
+    public ResponseEntity<GlobalResponse<OrderDto>> findOrderById(@PathVariable(required = true, name = "id") String id) {
         Optional<OrderDto> order = orderService.findOrderById(id);
-        return order.map(ResponseEntity::ok).orElseThrow(() -> new ResourceNotFoundException("No orders found by id: " + id));
+        return order.map(o -> ResponseEntity.ok(new GlobalResponse<>(o, "success")))
+                .orElseThrow(() -> new ResourceNotFoundException("No orders found by id: " + id));
     }
 
     @GetMapping("users/me/orders")
