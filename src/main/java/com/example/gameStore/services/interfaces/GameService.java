@@ -1,10 +1,13 @@
 package com.example.gameStore.services.interfaces;
 
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
-import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
+import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
+import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
+import com.example.gameStore.dtos.ReviewDtos.CreateOrUpdateReviewRequestDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,19 +20,21 @@ public interface GameService {
 
     Optional<GameDto> createGame(CreateGameRequestDto createGameRequestDto);
 
-    Optional<GameDto> updateGame(String id, GameDto gameDto);
+    Optional<GameDto> updateGame(@RequestBody UpdateGameRequestDto updateGameRequestDto);
 
-    boolean deleteGame(String id);
+    Optional<GameDto> deactivateGame(String gameId);
 
-    List<String> getAllGenres();
+    Optional<GameDto> activateGame(String gameId);
 
     List<GameDto> getGamesByGenre(String genre);
 
-    Optional<ReviewDto> createReview(String gameId, String userId, ReviewDto reviewDto);
+    List<GameDto> getGamesByPlayerSupport(String playerSupport);
 
-    Optional<ReviewDto> updateReview(String gameId, String reviewId);
+    Optional<ReviewDto> createReview(String gameId, String userId, CreateOrUpdateReviewRequestDto reviewDto);
 
-    boolean deleteReview(String gameId, String reviewId);
+    Optional<ReviewDto> updateReview(String reviewId, String userId, CreateOrUpdateReviewRequestDto createOrUpdateReviewRequestDto);
+
+    boolean deleteReview(String reviewId, String userId);
 
     Optional<KeyCreationDto> addKeyToGame(String gameId);
 
