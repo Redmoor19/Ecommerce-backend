@@ -15,6 +15,9 @@ import com.example.gameStore.repositories.FavouriteUserGameRepository;
 import com.example.gameStore.repositories.GameRepository;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.UserService;
+import com.example.gameStore.shared.exceptions.ResourceAlreadyExistsException;
+import com.example.gameStore.shared.exceptions.ResourceNotFoundException;
+import com.example.gameStore.utilities.TypeConverter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,70 +44,78 @@ public class UserServiceImpl implements UserService {
     }
 
     public Optional<UserDto> getUserById(String id) {
-        Optional<User> foundUser = userRepository.findById(UUID.fromString(id));
+        UUID userId = TypeConverter.convertStringToUUID(id);
+        Optional<User> foundUser = userRepository.findById(userId);
         return foundUser.map(user -> modelMapper.map(user, UserDto.class));
     }
 
     public Optional<UserDto> createUser(CreateUserRequestDto newUser) {
+        Optional<User> foundUser = userRepository.findByEmail(newUser.getEmail());
+        if (foundUser.isPresent())
+            throw new ResourceAlreadyExistsException("User with " + newUser.getEmail() + " already exists");
+
         User user = modelMapper.map(newUser, User.class);
         User createdUser = userRepository.save(user);
         return Optional.of(modelMapper.map(createdUser, UserDto.class));
     }
 
-    public Optional<UserDto> updateUser(UpdateUserRequestDto updateUserDto, String userId) {
-        Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
-        if (optUser.isEmpty()) return Optional.empty();
+    public Optional<UserDto> updateUser(UpdateUserRequestDto updateUserDto, String id) {
+        UUID userId = TypeConverter.convertStringToUUID(id);
+        Optional<User> optUser = userRepository.findById(userId);
+        if (optUser.isEmpty()) throw new ResourceNotFoundException("User with such Id not found");
         User user = optUser.get();
         modelMapper.map(updateUserDto, user);
         User savedUser = userRepository.save(user);
         return Optional.of(modelMapper.map(savedUser, UserDto.class));
     }
 
-    public boolean updateUserRole(UpdateUserRoleRequestDto roleDto, String userId) {
+    public boolean updateUserRole(UpdateUserRoleRequestDto roleDto, String id) {
         String role = roleDto.getRole();
+        UUID userId = TypeConverter.convertStringToUUID(id);
         boolean isValid = UserRole.isValidRole(role);
-        if (!isValid) return false;
+        if (!isValid) throw new IllegalArgumentException("Not valid user role");
         UserRole userRole = UserRole.valueOf(role.toUpperCase());
 
-        return userRepository.updateUserRole(UUID.fromString(userId), userRole) > 0;
+        return userRepository.updateUserRole(userId, userRole) > 0;
     }
 
     public boolean deleteUser(String id) {
-        return userRepository.updateUserStatus(UUID.fromString(id), UserStatus.NOT_ACTIVE) > 0;
+        UUID userId = TypeConverter.convertStringToUUID(id);
+        return userRepository.updateUserStatus(userId, UserStatus.NOT_ACTIVE) > 0;
     }
 
     public boolean activateUser(String id) {
-        return userRepository.updateUserStatus(UUID.fromString(id), UserStatus.ACTIVE) > 0;
+        UUID userId = TypeConverter.convertStringToUUID(id);
+        return userRepository.updateUserStatus(userId, UserStatus.ACTIVE) > 0;
     }
 
-    public Optional<UserDto> getCurrentUser() {
-        return Optional.empty();
-    }
-
-    public Optional<List<GameDto>> getFavouriteGames(String userId) {
-        List<Game> games = favouriteUserGameRepository.getUserFavourites(UUID.fromString(userId));
-        List<GameDto> gameDtos = games.stream().map(game -> modelMapper.map(game, GameDto.class)).toList();
-        return Optional.of(gameDtos);
+    public List<GameDto> getFavouriteGames(String id) {
+        UUID userId = TypeConverter.convertStringToUUID(id);
+        List<Game> games = favouriteUserGameRepository.getUserFavourites(userId);
+        return games.stream().map(game -> modelMapper.map(game, GameDto.class)).toList();
     }
 
     public boolean addFavouriteGame(String userId, String gameId) {
-        Optional<Game> game = gameRepository.findById(UUID.fromString(gameId));
-        Optional<User> user = userRepository.findById(UUID.fromString(userId));
+        UUID userUUID = TypeConverter.convertStringToUUID(userId);
+        UUID gameUUID = TypeConverter.convertStringToUUID(gameId);
 
-        if (game.isEmpty() || user.isEmpty()) return false;
+        Game game = gameRepository.findById(gameUUID).orElseThrow(() -> new ResourceNotFoundException("Game with id " + gameId + " not found"));
+        User user = userRepository.findById(userUUID).orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + " not found"));
 
         FavouriteUserGame favourite = new FavouriteUserGame();
-        favourite.setId(new FavouriteUserGameId(user.get().getId(), game.get().getId()));
-        favourite.setUser(user.get());
-        favourite.setGame(game.get());
+        favourite.setId(new FavouriteUserGameId(user.getId(), game.getId()));
+        favourite.setUser(user);
+        favourite.setGame(game);
 
         FavouriteUserGame saved = favouriteUserGameRepository.save(favourite);
 
-        return saved.getGame().getId().equals(game.get().getId());
+        return saved.getGame().getId().equals(game.getId());
     }
 
     public boolean removeFavouriteGame(String userId, String gameId) {
-        int deletedRows = favouriteUserGameRepository.deleteUserFavourite(UUID.fromString(userId), UUID.fromString(gameId));
-        return deletedRows > 0;
+        UUID userUUID = TypeConverter.convertStringToUUID(userId);
+        UUID gameUUID = TypeConverter.convertStringToUUID(gameId);
+        
+        return favouriteUserGameRepository.deleteUserFavourite(userUUID, gameUUID) > 0;
     }
 }
