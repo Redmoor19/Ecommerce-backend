@@ -8,12 +8,11 @@ import com.example.gameStore.dtos.UserDtos.UserDto;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 public interface UserService {
     List<UserDto> getUsers();
 
-    Optional<UserDto> getUserById(UUID id);
+    Optional<UserDto> getUserById(String id);
 
     Optional<UserDto> createUser(CreateUserRequestDto newUser);
 

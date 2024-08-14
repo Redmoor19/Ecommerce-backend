@@ -1,6 +1,7 @@
 package com.example.gameStore.controllers;
 
 import com.example.gameStore.dtos.UserDtos.CreateUserRequestDto;
+import com.example.gameStore.dtos.UserDtos.ForgotPasswordUserDto;
 import com.example.gameStore.dtos.UserDtos.LoggedInUserDto;
 import com.example.gameStore.dtos.UserDtos.LoginUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.ResetPasswordRequestDto;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/")
@@ -39,22 +39,21 @@ public class AuthController {
         return optionalLoggedInUserDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
-    @PostMapping("users/forgot-password")
-    public ResponseEntity<String> forgotUserPassword(@RequestBody String email) {
-        Optional<String> optUrl = authService.forgotPassword(email);
+    @PostMapping("auth/forgot-password")
+    public ResponseEntity<String> forgotUserPassword(@RequestBody ForgotPasswordUserDto forgotPasswordUserDto) {
+        Optional<String> optUrl = authService.forgotPassword(forgotPasswordUserDto);
         return optUrl.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PatchMapping("users/reset-password/{token}")
+    @PatchMapping("auth/reset-password/{token}")
     public ResponseEntity<LoggedInUserDto> resetUserPassword(@PathVariable String token, @RequestBody ResetPasswordRequestDto resetPasswordRequestDto) {
-        UUID userId = UUID.randomUUID();
-        Optional<LoggedInUserDto> optionalLoggedInUserDto = authService.resetPassword(token, userId, resetPasswordRequestDto);
+        Optional<LoggedInUserDto> optionalLoggedInUserDto = authService.resetPassword(token, resetPasswordRequestDto);
         return optionalLoggedInUserDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @PostMapping("users/me/update-password")
     public ResponseEntity<LoggedInUserDto> updateLoggedUserPassword(@RequestBody UpdatePasswordRequestDto updatePasswordRequestDto) {
-        UUID userId = UUID.randomUUID();
+        String userId = "sdasfasg";
         Optional<LoggedInUserDto> optionalLoggedInUserDto = authService.updatePassword(userId, updatePasswordRequestDto);
         return optionalLoggedInUserDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
     }

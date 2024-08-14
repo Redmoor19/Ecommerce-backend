@@ -40,8 +40,8 @@ public class UserServiceImpl implements UserService {
         return users.stream().map(user -> modelMapper.map(user, UserDto.class)).toList();
     }
 
-    public Optional<UserDto> getUserById(UUID id) {
-        Optional<User> foundUser = userRepository.findById(id);
+    public Optional<UserDto> getUserById(String id) {
+        Optional<User> foundUser = userRepository.findById(UUID.fromString(id));
         return foundUser.map(user -> modelMapper.map(user, UserDto.class));
     }
 
