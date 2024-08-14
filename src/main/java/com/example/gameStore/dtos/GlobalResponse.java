@@ -11,14 +11,15 @@ public class GlobalResponse<T> {
     private final String status;
     private final Error error;
 
-    public GlobalResponse(T data, String status, Integer errorCode, String errorMessage) {
-        this.data = data;
-        this.status = status;
-        if (errorCode == null || errorMessage == null) {
-            this.error = null;
-            return;
-        }
+    public GlobalResponse(Integer errorCode, String errorMessage) {
+        this.data = null;
+        this.status = ERROR;
         this.error = new Error(errorMessage, errorCode);
+    }
+    public GlobalResponse(T data) {
+        this.data = data;
+        this.status = SUCCESS;
+        this.error = null;
     }
 
     @Getter

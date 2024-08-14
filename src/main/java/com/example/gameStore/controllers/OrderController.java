@@ -35,7 +35,7 @@ public class OrderController {
         if (orders.isEmpty()) {
             throw new ResourceNotFoundException("No orders found");
         }
-        return ResponseEntity.ok(new GlobalResponse<>(orders, GlobalResponse.SUCCESS, null, null));
+        return ResponseEntity.ok(new GlobalResponse<>(orders));
     }
 
     @GetMapping("extended-orders")
@@ -50,7 +50,7 @@ public class OrderController {
     @GetMapping("orders/{id}")
     public ResponseEntity<GlobalResponse<OrderDto>> findOrderById(@PathVariable(required = true, name = "id") String id) {
         Optional<OrderDto> order = orderService.findOrderById(id);
-        return order.map(o -> ResponseEntity.ok(new GlobalResponse<>(o, GlobalResponse.SUCCESS, null, null)))
+        return order.map(o -> ResponseEntity.ok(new GlobalResponse<>(o)))
                 .orElseThrow(() -> new ResourceNotFoundException("No orders found by id: " + id));
     }
 
