@@ -37,6 +37,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(NO_CONTENT).body(new GlobalResponse<>(null, e.getMessage()));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<GlobalResponse> handleIllegalArgumentException(RuntimeException e) {
+        return ResponseEntity.badRequest().body(new GlobalResponse<>(null, e.getMessage()));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<GlobalResponse> handleRuntimeException(RuntimeException e) {
         return ResponseEntity.internalServerError().body(new GlobalResponse<>(null, e.getMessage()));
