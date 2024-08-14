@@ -10,4 +10,12 @@ public class TypeConverter {
             throw new IllegalArgumentException(errorMessage);
         }
     }
+
+    public static UUID convertStringToUUID(String input) {
+        try {
+            return UUID.fromString(input);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid UUID format: " + input);
+        }
+    }
 }
