@@ -1,5 +1,6 @@
 package com.example.gameStore.controllers;
 
+import com.example.gameStore.dtos.GlobalResponse;
 import com.example.gameStore.dtos.OrderDtos.OrderDto;
 import com.example.gameStore.dtos.OrderDtos.OrderWithUserDto;
 import com.example.gameStore.services.interfaces.OrderService;
@@ -29,12 +30,12 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping("orders")
-    public ResponseEntity<List<OrderDto>> findAllOrders() {
+    public ResponseEntity<GlobalResponse<List<OrderDto>>> findAllOrders() {
         List<OrderDto> orders = orderService.findAllOrders();
         if (orders.isEmpty()) {
             throw new ResourceNotFoundException("No orders found");
         }
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(new GlobalResponse<>(orders, "success"));
     }
 
     @GetMapping("extended-orders")

@@ -1,5 +1,6 @@
 package com.example.gameStore.shared;
 
+import com.example.gameStore.dtos.GlobalResponse;
 import com.example.gameStore.shared.exceptions.BadRequestException;
 import com.example.gameStore.shared.exceptions.NoContentException;
 import com.example.gameStore.shared.exceptions.ResourceAlreadyExistsException;
@@ -15,27 +16,29 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<String> handleBadRequestException(RuntimeException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
+    public ResponseEntity<GlobalResponse> handleBadRequestException(RuntimeException e) {
+        return ResponseEntity.badRequest().body(new GlobalResponse<>(null, e.getMessage()));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<String> handleResourceNotFoundException(RuntimeException e) {
-        return ResponseEntity.status(NOT_FOUND).body(e.getMessage());
+    public ResponseEntity<GlobalResponse> handleResourceNotFoundException(RuntimeException e) {
+        return ResponseEntity
+                .status(NOT_FOUND)
+                .body(new GlobalResponse<>(null, e.getMessage()));
     }
 
     @ExceptionHandler(ResourceAlreadyExistsException.class)
-    public ResponseEntity<String> handleResourceAlreadyExistsException(RuntimeException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
+    public ResponseEntity<GlobalResponse> handleResourceAlreadyExistsException(RuntimeException e) {
+        return ResponseEntity.badRequest().body(new GlobalResponse<>(null, e.getMessage()));
     }
 
     @ExceptionHandler(NoContentException.class)
-    public ResponseEntity<String> handleNoContentException(RuntimeException e) {
-        return ResponseEntity.status(NO_CONTENT).body(e.getMessage());
+    public ResponseEntity<GlobalResponse> handleNoContentException(RuntimeException e) {
+        return ResponseEntity.status(NO_CONTENT).body(new GlobalResponse<>(null, e.getMessage()));
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Object> handleRuntimeException(RuntimeException exception) {
-        return ResponseEntity.internalServerError().body(exception.getMessage());
+    public ResponseEntity<GlobalResponse> handleRuntimeException(RuntimeException e) {
+        return ResponseEntity.internalServerError().body(new GlobalResponse<>(null, e.getMessage()));
     }
 }
