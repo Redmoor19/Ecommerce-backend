@@ -1,7 +1,6 @@
 package com.example.gameStore.dtos;
 
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 public class GlobalResponse<T> {
@@ -15,7 +14,7 @@ public class GlobalResponse<T> {
     public GlobalResponse(T data, String status, Integer errorCode, String errorMessage) {
         this.data = data;
         this.status = status;
-        if(errorCode == null || errorMessage == null) {
+        if (errorCode == null || errorMessage == null) {
             this.error = null;
             return;
         }
