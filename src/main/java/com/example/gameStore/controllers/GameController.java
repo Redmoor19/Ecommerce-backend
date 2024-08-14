@@ -42,7 +42,9 @@ public class GameController {
             @RequestParam(value = "order", defaultValue = "asc") String sortOrder,
             @RequestParam(value = "page", defaultValue = "0") String pageNumber,
             @RequestParam(value = "size", defaultValue = "20") String pageSize,
-            @RequestParam(value = "search", required = false) String searchKeyword
+            @RequestParam(value = "search", required = false) String searchKeyword,
+            @RequestParam(value = "genres", required = false) List<String> genres,
+            @RequestParam(value = "playerSupports", required = false) List<String> playerSupport
     ) {
         int convertedPageNumber, convertedPageSize;
         try {
@@ -51,7 +53,15 @@ public class GameController {
         } catch (Exception e) {
             throw new NumberFormatException("Wrong data format for page and size");
         }
-        List<GameDto> games = gameService.findAllGames(sortField, sortOrder, convertedPageNumber, convertedPageSize, searchKeyword);
+        List<GameDto> games = gameService.findAllGames(
+                sortField,
+                sortOrder,
+                convertedPageNumber,
+                convertedPageSize,
+                searchKeyword,
+                genres,
+                playerSupport
+        );
         if (games.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -64,7 +74,9 @@ public class GameController {
             @RequestParam(value = "order", defaultValue = "asc") String sortOrder,
             @RequestParam(value = "page", defaultValue = "0") String pageNumber,
             @RequestParam(value = "size", defaultValue = "20") String pageSize,
-            @RequestParam(value = "search", required = false) String searchKeyword) {
+            @RequestParam(value = "search", required = false) String searchKeyword,
+            @RequestParam(value = "genres", required = false) List<String> genres,
+            @RequestParam(value = "playerSupports", required = false) List<String> playerSupport) {
         int convertedPageNumber, convertedPageSize;
         try {
             convertedPageNumber = Integer.parseInt(pageNumber);
@@ -72,7 +84,14 @@ public class GameController {
         } catch (Exception e) {
             throw new NumberFormatException("Wrong data format for page and size");
         }
-        List<GameDto> games = gameService.findAllActiveGames(sortField, sortOrder, convertedPageNumber, convertedPageSize, searchKeyword);
+        List<GameDto> games = gameService.findAllActiveGames(
+                sortField,
+                sortOrder,
+                convertedPageNumber,
+                convertedPageSize,
+                searchKeyword,
+                genres,
+                playerSupport);
         if (games.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -111,7 +130,7 @@ public class GameController {
 
     @GetMapping("games/genres")
     public ResponseEntity<List<String>> getAllGenres() {
-        List<String> genreList = Genre.getAllGenres();
+        List<String> genreList = Genre.getAllGenresString();
         if (genreList.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -129,7 +148,7 @@ public class GameController {
 
     @GetMapping("games/player-support")
     public ResponseEntity<List<String>> getAllPlayerSupport() {
-        List<String> playerSupport = PlayerSupport.getAllPlayerSupport();
+        List<String> playerSupport = PlayerSupport.getAllPlayerSupportString();
         if (playerSupport.isEmpty()) {
             return ResponseEntity.noContent().build();
         }

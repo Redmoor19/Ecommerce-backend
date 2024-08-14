@@ -14,9 +14,9 @@ import java.util.Optional;
 
 public interface GameService {
 
-    List<GameDto> findAllGames(String sortField, String sortOrder, int pageNumber, int pageSize, String searchKeyword);
+    List<GameDto> findAllGames(String sortField, String sortOrder, int pageNumber, int pageSize, String searchKeyword, List<String> genres, List<String> playerSupport);
 
-    List<GameDto> findAllActiveGames(String sortField, String sortOrder, int pageNumber, int pageSize, String searchKeyword);
+    List<GameDto> findAllActiveGames(String sortField, String sortOrder, int pageNumber, int pageSize, String searchKeyword, List<String> genres, List<String> playerSupport);
 
     Optional<SingleGameWithReviewsDto> getGameById(String id);
 
