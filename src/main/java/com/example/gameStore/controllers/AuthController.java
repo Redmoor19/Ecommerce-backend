@@ -39,7 +39,7 @@ public class AuthController {
         return optionalLoggedInUserDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
-    @PostMapping("users/forgot-password")
+    @PostMapping("auth/forgot-password")
     public ResponseEntity<String> forgotUserPassword(@RequestBody ForgotPasswordUserDto forgotPasswordUserDto) {
         Optional<String> optUrl = authService.forgotPassword(forgotPasswordUserDto);
         return optUrl.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());

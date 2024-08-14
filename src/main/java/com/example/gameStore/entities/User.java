@@ -15,10 +15,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -27,7 +32,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "\"user\"")
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -82,5 +87,17 @@ public class User {
             this.activeStatus = UserStatus.UNVERIFIED;
         }
         this.createdAt = Timestamp.from(Instant.now());
+    }
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role.name()));
+    }
+
+    public String getUsername() {
+        return email;
+    }
+
+    public boolean isAccountNonLocked() {
+        return activeStatus != UserStatus.NOT_ACTIVE;
     }
 }

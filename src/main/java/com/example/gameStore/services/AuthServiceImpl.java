@@ -11,10 +11,13 @@ import com.example.gameStore.entities.User;
 import com.example.gameStore.enums.UserStatus;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.AuthService;
-import com.example.gameStore.shared.PasswordAuthentication;
 import com.example.gameStore.shared.TokenManager;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -29,6 +32,12 @@ public class AuthServiceImpl implements AuthService {
     private final ModelMapper modelMapper = new ModelMapper();
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JWTServiceImpl jwtService;
 
 
     public Optional<LoggedInUserDto> registerUser(CreateUserRequestDto newUser) {
@@ -40,7 +49,7 @@ public class AuthServiceImpl implements AuthService {
         User user = new User();
         modelMapper.map(newUser, user);
 
-        String hashedPassword = PasswordAuthentication.hash(newUser.getPassword());
+        String hashedPassword = passwordEncoder.encode(newUser.getPassword());
         user.setPassword(hashedPassword);
 
         String token = TokenManager.generateRandomToken();
@@ -48,27 +57,27 @@ public class AuthServiceImpl implements AuthService {
         user.setConfirmEmailToken(hashedToken);
         User savedUser = userRepository.save(user);
 
+        String jwtToken = jwtService.generateToken(savedUser);
+
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(newUser.getEmail(), newUser.getPassword()));
         // Send token to email using verification token
 
-        LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(savedUser, UserDto.class));
-        return Optional.of(loggedInUserDto);
+        return Optional.of(new LoggedInUserDto(jwtToken, modelMapper.map(savedUser, UserDto.class)));
     }
 
     public Optional<LoggedInUserDto> logUserIn(LoginUserRequestDto userCreds) {
+        Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userCreds.getEmail(), userCreds.getPassword()));
+
+        if (!auth.isAuthenticated()) return Optional.empty();
+
         Optional<User> optUser = userRepository.findByEmail(userCreds.getEmail());
         if (optUser.isEmpty()) {
             //Throw error incorrect email (user not found)
             return Optional.empty();
         }
         User user = optUser.get();
-
-        boolean passwordCorrect = PasswordAuthentication.verifyHash(userCreds.getPassword(), user.getPassword());
-        if (!passwordCorrect) {
-            //Throw error password incorrect
-            return Optional.empty();
-        }
-
-        LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(user, UserDto.class));
+        String jwt = jwtService.generateToken(user);
+        LoggedInUserDto loggedInUserDto = new LoggedInUserDto(jwt, modelMapper.map(user, UserDto.class));
         return Optional.of(loggedInUserDto);
     }
 
@@ -116,14 +125,14 @@ public class AuthServiceImpl implements AuthService {
             return Optional.empty();
         }
 
-        String hashedPassword = PasswordAuthentication.hash(resetPasswordDto.getPassword());
-        user.setPassword(hashedPassword);
+        user.setPassword(passwordEncoder.encode(resetPasswordDto.getPassword()));
         user.setPasswordChangedAt(Timestamp.from(Instant.now()));
         user.setPasswordResetToken(null);
         user.setPasswordResetExpires(null);
         User savedUser = userRepository.save(user);
 
-        LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(savedUser, UserDto.class));
+        String jwt = jwtService.generateToken(user);
+        LoggedInUserDto loggedInUserDto = new LoggedInUserDto(jwt, modelMapper.map(savedUser, UserDto.class));
         return Optional.of(loggedInUserDto);
     }
 
@@ -141,13 +150,12 @@ public class AuthServiceImpl implements AuthService {
         }
         User user = optUser.get();
 
-        String hashedPassword = PasswordAuthentication.hash(updatePasswordDto.getNewPassword());
-        user.setPassword(hashedPassword);
+        user.setPassword(passwordEncoder.encode(updatePasswordDto.getNewPassword()));
         user.setPasswordChangedAt(Timestamp.from(Instant.now()));
         User savedUser = userRepository.save(user);
-        userRepository.save(user);
 
-        LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(savedUser, UserDto.class));
+        String jwt = jwtService.generateToken(user);
+        LoggedInUserDto loggedInUserDto = new LoggedInUserDto(jwt, modelMapper.map(savedUser, UserDto.class));
         return Optional.of(loggedInUserDto);
     }
 
@@ -169,7 +177,8 @@ public class AuthServiceImpl implements AuthService {
         user.setConfirmEmailToken(null);
         User savedUser = userRepository.save(user);
 
-        LoggedInUserDto loggedInUserDto = new LoggedInUserDto("Tokena poka net", modelMapper.map(savedUser, UserDto.class));
+        String jwt = jwtService.generateToken(user);
+        LoggedInUserDto loggedInUserDto = new LoggedInUserDto(jwt, modelMapper.map(savedUser, UserDto.class));
         return Optional.of(loggedInUserDto);
     }
 

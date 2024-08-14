@@ -7,6 +7,7 @@ import com.example.gameStore.dtos.UserDtos.UpdateUserRoleRequestDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
 import com.example.gameStore.services.interfaces.OrderService;
 import com.example.gameStore.services.interfaces.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/users")
@@ -40,7 +40,7 @@ public class UserController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserDto> findUserById(@PathVariable String userId) {
-        Optional<UserDto> optUserDto = userService.getUserById(UUID.fromString(userId));
+        Optional<UserDto> optUserDto = userService.getUserById(userId);
         return optUserDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -80,12 +80,13 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserDto> findLoggedUser() {
-        Optional<UserDto> optLoggedInUserDto = userService.getCurrentUser();
+    public ResponseEntity<UserDto> findLoggedUser(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        Optional<UserDto> optLoggedInUserDto = userService.getUserById(userId);
         return optLoggedInUserDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
-    @DeleteMapping("/delete-me/{userId}")
+    @DeleteMapping("/me/{userId}")
     public ResponseEntity<Void> removeLoggedInUser(@PathVariable String userId) {
         if (userService.deleteUser(userId)) {
             return ResponseEntity.status(204).build();
@@ -93,9 +94,9 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
-    @PatchMapping("/update-me")
-    public ResponseEntity<UserDto> updateLoggedInUser(@RequestBody UpdateUserRequestDto updateUserDto) {
-        String userId = "sdsfa";
+    @PatchMapping("/me")
+    public ResponseEntity<UserDto> updateLoggedInUser(HttpServletRequest request, @RequestBody UpdateUserRequestDto updateUserDto) {
+        String userId = (String) request.getAttribute("userId");
         Optional<UserDto> updatedUser = userService.updateUser(updateUserDto, userId);
         return updatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
     }
