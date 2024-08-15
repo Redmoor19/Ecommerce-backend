@@ -20,6 +20,8 @@ import com.example.gameStore.repositories.OrderRepository;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.EmailService;
 import com.example.gameStore.services.interfaces.OrderService;
+import com.example.gameStore.shared.exceptions.BadRequestException;
+import com.example.gameStore.utilities.TypeConverter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -66,7 +68,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     public Optional<OrderDto> findOrderById(String id) {
-        Optional<Order> order = orderRepository.findById(UUID.fromString(id));
+        UUID orderId = TypeConverter.convertStringToUUID(id, "Invalid order id format: " + id);
+        Optional<Order> order = orderRepository.findById(orderId);
         return order.map(this::mapOrderToOrderDto);
     }
 
