@@ -68,7 +68,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<GlobalResponse<Void>> handleAuthenticationException(AuthenticationException e) {
-        return ResponseEntity.status(403).body(new GlobalResponse<>(FORBIDDEN.value(), e.getMessage()));
+        return ResponseEntity.status(FORBIDDEN).body(new GlobalResponse<>(FORBIDDEN.value(), e.getMessage()));
     }
 
     private String parseErrorMessage(String errorMessage) {
