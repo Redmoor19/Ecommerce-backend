@@ -24,7 +24,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
     @Query(value = """
             SELECT CAST(SUM(star_rating) AS FLOAT) / COUNT(*) AS average_rating
-            FROM t_review
+            FROM review
             WHERE game_id = :gameId;
             """, nativeQuery = true)
     Optional<Float> averageRating(@Param("gameId") UUID gameId);

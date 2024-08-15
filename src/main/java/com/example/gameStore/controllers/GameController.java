@@ -12,6 +12,7 @@ import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
 import com.example.gameStore.services.interfaces.GameService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,8 +38,9 @@ public class GameController {
     @Autowired
     private final GameService gameService;
 
-    @GetMapping("games")
+    @GetMapping("games/all")
     public ResponseEntity<GamesListResponseDto> findAllGames(
+            HttpServletRequest request,
             @RequestParam(value = "sort", defaultValue = "name") String sortField,
             @RequestParam(value = "order", defaultValue = "asc") String sortOrder,
             @RequestParam(value = "page", defaultValue = "1") String pageNumber,
@@ -165,29 +167,30 @@ public class GameController {
         return ResponseEntity.ok(gamesByPlayerSupport);
     }
 
-
-    // I pass userId through URL temporarily since I can't get ID from request. Remember to delete after auth is complete!
-    @PostMapping("games/{gameId}/reviews/{userId}")
-    public ResponseEntity<ReviewDto> createReview(@PathVariable String gameId, @PathVariable String userId, @RequestBody CreateOrUpdateReviewRequestDto reviewDto) {
+    @PostMapping("games/reviews/{gameId}")
+    public ResponseEntity<ReviewDto> createReview(HttpServletRequest request, @PathVariable String gameId, @RequestBody CreateOrUpdateReviewRequestDto reviewDto) {
+        String userId = (String) request.getAttribute("userId");
         Optional<ReviewDto> review = gameService.createReview(gameId, userId, reviewDto);
         return review.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PatchMapping("games/reviews/{reviewId}/user/{userId}")
-    public ResponseEntity<ReviewDto> updateReview(@PathVariable String reviewId, @PathVariable String userId, @RequestBody CreateOrUpdateReviewRequestDto createOrUpdateReviewRequestDto) {
+    @PatchMapping("games/reviews/{reviewId}")
+    public ResponseEntity<ReviewDto> updateReview(HttpServletRequest request, @PathVariable String reviewId, @RequestBody CreateOrUpdateReviewRequestDto createOrUpdateReviewRequestDto) {
+        String userId = (String) request.getAttribute("userId");
         Optional<ReviewDto> review = gameService.updateReview(reviewId, userId, createOrUpdateReviewRequestDto);
         return review.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("games/reviews/{reviewId}/user/{userId}")
-    public ResponseEntity<ReviewDto> deleteReview(@PathVariable String reviewId, @PathVariable String userId) {
+    @DeleteMapping("games/reviews/{reviewId}")
+    public ResponseEntity<ReviewDto> deleteReview(HttpServletRequest request, @PathVariable String reviewId) {
+        String userId = (String) request.getAttribute("userId");
         if (gameService.deleteReview(reviewId, userId)) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping("games/{gameId}/keys")
+    @PostMapping("games/keys/{gameId}")
     public ResponseEntity<KeyCreationDto> addKeyToGame(@PathVariable String gameId) {
         Optional<KeyCreationDto> key = gameService.addKeyToGame(gameId);
         return key.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());

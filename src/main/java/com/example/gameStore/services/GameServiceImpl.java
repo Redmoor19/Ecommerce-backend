@@ -22,6 +22,7 @@ import com.example.gameStore.repositories.ReviewRepository;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.GameService;
 import com.example.gameStore.utilities.GameSpecification;
+import com.example.gameStore.utilities.TypeConverter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -138,9 +138,9 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Optional<SingleGameWithReviewsDto> getGameById(String id) {
-        Optional<Game> game = gameRepository.findById(UUID.fromString(id));
+        Optional<Game> game = gameRepository.findById(TypeConverter.convertStringToUUID(id));
         if (game.isEmpty()) return Optional.empty();
-        List<EmbeddedReviewDto> reviews = reviewRepository.findReviewsByGameId(UUID.fromString(id));
+        List<EmbeddedReviewDto> reviews = reviewRepository.findReviewsByGameId(TypeConverter.convertStringToUUID(id));
         SingleGameWithReviewsDto singleGameWithReviewsDto = modelMapper.map(game, SingleGameWithReviewsDto.class);
         singleGameWithReviewsDto.setReviews(reviews);
         return Optional.of(singleGameWithReviewsDto);
@@ -171,7 +171,7 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Optional<GameDto> deactivateGame(String gameId) {
-        Optional<Game> updateGame = gameRepository.findById(UUID.fromString(gameId));
+        Optional<Game> updateGame = gameRepository.findById(TypeConverter.convertStringToUUID(gameId));
         if (updateGame.isEmpty()) return Optional.empty();
 
         Game deactivatingGame = updateGame.get();
@@ -185,7 +185,7 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Optional<GameDto> activateGame(String gameId) {
-        Optional<Game> updateGame = gameRepository.findById(UUID.fromString(gameId));
+        Optional<Game> updateGame = gameRepository.findById(TypeConverter.convertStringToUUID(gameId));
         if (updateGame.isEmpty() || updateGame.get().getQuantity() == 0) return Optional.empty();
 
         Game activatingGame = updateGame.get();
@@ -215,8 +215,8 @@ public class GameServiceImpl implements GameService {
     @Override
     public Optional<ReviewDto> createReview(String gameId, String userId, CreateOrUpdateReviewRequestDto reviewDto) {
         Review review = modelMapper.map(reviewDto, Review.class);
-        Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
-        Optional<Game> optGame = gameRepository.findById(UUID.fromString(gameId));
+        Optional<User> optUser = userRepository.findById(TypeConverter.convertStringToUUID(userId));
+        Optional<Game> optGame = gameRepository.findById(TypeConverter.convertStringToUUID(gameId));
         if (optUser.isEmpty() || optGame.isEmpty()) return Optional.empty();
         review.setUserId(optUser.get());
         review.setGameId(optGame.get());
@@ -227,8 +227,8 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Optional<ReviewDto> updateReview(String reviewId, String userId, CreateOrUpdateReviewRequestDto createOrUpdateReviewRequestDto) {
-        Optional<Review> optionalUpdatingReview = reviewRepository.findById(UUID.fromString(reviewId));
-        Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
+        Optional<Review> optionalUpdatingReview = reviewRepository.findById(TypeConverter.convertStringToUUID(reviewId));
+        Optional<User> optUser = userRepository.findById(TypeConverter.convertStringToUUID(userId));
         if (optUser.isEmpty()) return Optional.empty();
         if (optionalUpdatingReview.isEmpty() || !optionalUpdatingReview.get().getUserId().getId().equals(optUser.get().getId()))
             return Optional.empty();
@@ -244,9 +244,9 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public boolean deleteReview(String reviewId, String userId) {
-        Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
+        Optional<User> optUser = userRepository.findById(TypeConverter.convertStringToUUID(userId));
         if (optUser.isEmpty()) return false;
-        Optional<Review> optionalDeletingReview = reviewRepository.findById(UUID.fromString(reviewId));
+        Optional<Review> optionalDeletingReview = reviewRepository.findById(TypeConverter.convertStringToUUID(reviewId));
         if (optionalDeletingReview.isEmpty()
                 || !optionalDeletingReview.get().getUserId().getId().equals(optUser.get().getId()))
             return false;
@@ -259,7 +259,7 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Optional<KeyCreationDto> addKeyToGame(String gameId) {
-        Game game = gameRepository.findById(UUID.fromString(gameId))
+        Game game = gameRepository.findById(TypeConverter.convertStringToUUID(gameId))
                 .orElseThrow(() -> new RuntimeException("Game not found with ID: " + gameId));
         Key key = new Key();
         key.setGame(game);
@@ -271,14 +271,12 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Optional<Integer> countGameKeys(String gameId) {
-        UUID convertedGameId = UUID.fromString(gameId);
-        return gameRepository.getGameKeysAmount(convertedGameId);
+        return gameRepository.getGameKeysAmount(TypeConverter.convertStringToUUID(gameId));
     }
 
     private void updateGameRating(Game game) {
         Optional<Float> newAverageRating = reviewRepository.averageRating(game.getId());
-        game.setAverageRating(newAverageRating.orElseThrow(() ->
-                new NoSuchElementException("Average rating for the game could not be calculated!")));
+        game.setAverageRating(newAverageRating.orElse(0.0f));
         gameRepository.save(game);
     }
 
