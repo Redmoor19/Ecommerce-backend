@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.naming.AuthenticationException;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/")
@@ -32,7 +31,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping("orders")
-    public ResponseEntity<GlobalResponse<List<OrderDto>>> findAllOrders(HttpServletRequest request) {
+    public ResponseEntity<GlobalResponse<List<OrderDto>>> findAllOrders() {
         List<OrderDto> orders = orderService.findAllOrders();
         if (orders.isEmpty()) {
             throw new ResourceNotFoundException("No orders found");
