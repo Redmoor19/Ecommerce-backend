@@ -2,6 +2,8 @@ package com.example.gameStore.services;
 
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
+import com.example.gameStore.dtos.GameDtos.GamesListResponseDto;
+import com.example.gameStore.dtos.GameDtos.GamesListHeadDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
@@ -36,7 +38,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -59,11 +60,12 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public List<GameDto> findAllGames(String sortField, String sortOrder, int pageNumber, int pageSize, String searchKeyword, List<String> genres, List<String> playerSupport) {
+    public GamesListResponseDto findAllGames(String sortField, String sortOrder, int pageNumber, int pageSize, String searchKeyword, List<String> genres, List<String> playerSupport) {
         isSortFieldValid(sortField);
 
+        if (pageSize < 1) throw new IllegalArgumentException("Page size must be greater than zero.");
         Sort.Direction direction = Sort.Direction.fromString(sortOrder);
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(direction, sortField));
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(direction, sortField));
 
         List<Genre> genreList = Optional.ofNullable(genres)
                 .filter(list -> !list.isEmpty())
@@ -81,18 +83,22 @@ public class GameServiceImpl implements GameService {
 
         Specification<Game> spec = GameSpecification.withFilters(searchKeyword, genreList, supportList);
         Page<Game> gamesPage = gameRepository.findAll(spec, pageable);
-        return gamesPage.getContent()
+        List<GameDto> allGamesList = gamesPage.getContent()
                 .stream()
                 .map(game -> modelMapper.map(game, GameDto.class))
-                .collect(Collectors.toList());
+                .toList();
+        int allGamesQuantity = (int) gameRepository.count();
+        int pagesQuantity = (int) Math.ceil((double) allGamesQuantity / pageSize);
+        return new GamesListResponseDto(new GamesListHeadDto(allGamesQuantity, pagesQuantity), allGamesList);
     }
 
     @Override
-    public List<GameDto> findAllActiveGames(String sortField, String sortOrder, int pageNumber, int pageSize, String searchKeyword, List<String> genres, List<String> playerSupport) {
+    public GamesListResponseDto findAllActiveGames(String sortField, String sortOrder, int pageNumber, int pageSize, String searchKeyword, List<String> genres, List<String> playerSupport) {
         isSortFieldValid(sortField);
 
+        if (pageSize < 1) throw new IllegalArgumentException("Page size must be greater than zero.");
         Sort.Direction direction = Sort.Direction.fromString(sortOrder);
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(direction, sortField));
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(direction, sortField));
 
         List<Genre> genreList = Optional.ofNullable(genres)
                 .filter(list -> !list.isEmpty())
@@ -113,10 +119,14 @@ public class GameServiceImpl implements GameService {
                 .and(GameSpecification.withFilters(searchKeyword, genreList, supportList));
         Page<Game> gamesPage = gameRepository.findAll(spec, pageable);
 
-        return gamesPage.getContent()
+        List<GameDto> allGamesList = gamesPage.getContent()
                 .stream()
                 .map(game -> modelMapper.map(game, GameDto.class))
-                .collect(Collectors.toList());
+                .toList();
+
+        int allGamesQuantity = (int) gameRepository.count();
+        int pagesQuantity = (int) Math.ceil((double) allGamesQuantity / pageSize);
+        return new GamesListResponseDto(new GamesListHeadDto(allGamesQuantity, pagesQuantity), allGamesList);
     }
 
     @Override

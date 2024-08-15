@@ -3,6 +3,7 @@ package com.example.gameStore.controllers;
 
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
+import com.example.gameStore.dtos.GameDtos.GamesListResponseDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
@@ -37,10 +38,10 @@ public class GameController {
     private final GameService gameService;
 
     @GetMapping("games")
-    public ResponseEntity<List<GameDto>> findAllGames(
+    public ResponseEntity<GamesListResponseDto> findAllGames(
             @RequestParam(value = "sort", defaultValue = "name") String sortField,
             @RequestParam(value = "order", defaultValue = "asc") String sortOrder,
-            @RequestParam(value = "page", defaultValue = "0") String pageNumber,
+            @RequestParam(value = "page", defaultValue = "1") String pageNumber,
             @RequestParam(value = "size", defaultValue = "20") String pageSize,
             @RequestParam(value = "search", required = false) String searchKeyword,
             @RequestParam(value = "genres", required = false) List<String> genres,
@@ -53,7 +54,7 @@ public class GameController {
         } catch (Exception e) {
             throw new NumberFormatException("Wrong data format for page and size");
         }
-        List<GameDto> games = gameService.findAllGames(
+        GamesListResponseDto games = gameService.findAllGames(
                 sortField,
                 sortOrder,
                 convertedPageNumber,
@@ -69,10 +70,10 @@ public class GameController {
     }
 
     @GetMapping("games/active")
-    public ResponseEntity<List<GameDto>> findAllActiveGames(
+    public ResponseEntity<GamesListResponseDto> findAllActiveGames(
             @RequestParam(value = "sort", defaultValue = "name") String sortField,
             @RequestParam(value = "order", defaultValue = "asc") String sortOrder,
-            @RequestParam(value = "page", defaultValue = "0") String pageNumber,
+            @RequestParam(value = "page", defaultValue = "1") String pageNumber,
             @RequestParam(value = "size", defaultValue = "20") String pageSize,
             @RequestParam(value = "search", required = false) String searchKeyword,
             @RequestParam(value = "genres", required = false) List<String> genres,
@@ -84,7 +85,7 @@ public class GameController {
         } catch (Exception e) {
             throw new NumberFormatException("Wrong data format for page and size");
         }
-        List<GameDto> games = gameService.findAllActiveGames(
+        GamesListResponseDto games = gameService.findAllActiveGames(
                 sortField,
                 sortOrder,
                 convertedPageNumber,

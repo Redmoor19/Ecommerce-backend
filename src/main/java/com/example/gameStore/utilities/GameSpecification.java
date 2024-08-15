@@ -24,12 +24,10 @@ public class GameSpecification {
             Predicate predicate = cb.conjunction();
 
             if (name != null && !name.isEmpty()) {
-                System.out.println("=============================================================Filtering by name: " + name);
                 predicate = cb.and(predicate, cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
             }
 
             if (genres != null && !genres.isEmpty()) {
-                System.out.println("===========================================================Filtering by genres: " + genres);
                 Predicate genrePredicate = cb.disjunction();
                 for (Genre genre : genres) {
                     genrePredicate = cb.or(genrePredicate, cb.isMember(genre, root.get("genreList")));
@@ -38,7 +36,6 @@ public class GameSpecification {
             }
 
             if (supports != null && !supports.isEmpty()) {
-                System.out.println("========================================================Filtering by supports: " + supports);
                 Predicate supportPredicate = cb.disjunction();
                 for (PlayerSupport support : supports) {
                     supportPredicate = cb.or(supportPredicate, cb.isMember(support, root.get("playerSupport")));
