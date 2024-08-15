@@ -1,13 +1,16 @@
 package com.example.gameStore.controllers;
 
 import com.example.gameStore.dtos.GameDtos.GameDto;
+import com.example.gameStore.dtos.GlobalResponse;
 import com.example.gameStore.dtos.UserDtos.CreateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UpdateUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.UpdateUserRoleRequestDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
 import com.example.gameStore.services.interfaces.OrderService;
 import com.example.gameStore.services.interfaces.UserService;
+import com.example.gameStore.shared.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -34,88 +37,98 @@ public class UserController {
     private final OrderService orderService;
 
     @GetMapping
-    public List<UserDto> findUsers() {
-        return userService.getUsers();
+    public ResponseEntity<GlobalResponse<List<UserDto>>> findUsers() {
+        List<UserDto> users = userService.getUsers();
+        return ResponseEntity.ok(new GlobalResponse<>(users));
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserDto> findUserById(@PathVariable String userId) {
+    public ResponseEntity<GlobalResponse<UserDto>> findUserById(@PathVariable String userId) {
         Optional<UserDto> optUserDto = userService.getUserById(userId);
-        return optUserDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return optUserDto
+                .map(userDto -> ResponseEntity.ok(new GlobalResponse<>(userDto)))
+                .orElseThrow(() -> new ResourceNotFoundException("User with such Id not found"));
     }
 
     @PostMapping
-    public ResponseEntity<UserDto> addUser(@RequestBody CreateUserRequestDto createUserDto) {
+    public ResponseEntity<GlobalResponse<UserDto>> addUser(@RequestBody @Valid CreateUserRequestDto createUserDto) {
         Optional<UserDto> optCreatedUser = userService.createUser(createUserDto);
         orderService.createNewOrder(optCreatedUser);
-        return optCreatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return optCreatedUser
+                .map(userDto -> ResponseEntity.ok(new GlobalResponse<>(userDto)))
+                .orElseThrow(() -> new RuntimeException("Something went wrong"));
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> removeUser(@PathVariable String userId) {
-        if (userService.deleteUser(userId)) {
-            return ResponseEntity.status(204).build();
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<GlobalResponse<Void>> removeUser(@PathVariable String userId) {
+        if (!userService.deleteUser(userId)) throw new ResourceNotFoundException("User with such Id not found");
+        return ResponseEntity.status(204).build();
     }
 
     @PostMapping("/activate/{userId}")
     public ResponseEntity<Void> activateUser(@PathVariable String userId) {
-        if (userService.activateUser(userId)) {
-            return ResponseEntity.status(200).build();
-        }
-        return ResponseEntity.notFound().build();
+        if (!userService.activateUser(userId)) throw new ResourceNotFoundException("User with such Id not found");
+        return ResponseEntity.status(204).build();
     }
 
     @PatchMapping("/{userId}")
-    public ResponseEntity<UserDto> updateUser(@PathVariable String userId, @RequestBody UpdateUserRequestDto updateUserDto) {
+    public ResponseEntity<GlobalResponse<UserDto>> updateUser(@PathVariable String userId, @RequestBody @Valid UpdateUserRequestDto updateUserDto) {
         Optional<UserDto> optUpdatedUser = userService.updateUser(updateUserDto, userId);
-        return optUpdatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
+        return optUpdatedUser
+                .map(userDto -> ResponseEntity.ok(new GlobalResponse<>(userDto)))
+                .orElseThrow(() -> new RuntimeException("Something went wrong"));
     }
 
     @PatchMapping("role/{userId}")
-    public ResponseEntity<Void> updateUserRole(@PathVariable String userId, @RequestBody UpdateUserRoleRequestDto roleDto) {
-        boolean isUpdated = userService.updateUserRole(roleDto, userId);
-        return isUpdated ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+    public ResponseEntity<GlobalResponse<Void>> updateUserRole(@PathVariable String userId, @RequestBody @Valid UpdateUserRoleRequestDto roleDto) {
+        if (!userService.updateUserRole(roleDto, userId))
+            throw new ResourceNotFoundException("User with such Id not found");
+        return ResponseEntity.status(204).build();
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserDto> findLoggedUser(HttpServletRequest request) {
+    public ResponseEntity<GlobalResponse<UserDto>> findLoggedUser(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         Optional<UserDto> optLoggedInUserDto = userService.getUserById(userId);
-        return optLoggedInUserDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
+        return optLoggedInUserDto
+                .map(userDto -> ResponseEntity.ok(new GlobalResponse<>(userDto)))
+                .orElseThrow(() -> new ResourceNotFoundException("User with such Id not found"));
     }
 
-    @DeleteMapping("/me/{userId}")
-    public ResponseEntity<Void> removeLoggedInUser(@PathVariable String userId) {
-        if (userService.deleteUser(userId)) {
-            return ResponseEntity.status(204).build();
-        }
-        return ResponseEntity.notFound().build();
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> removeLoggedInUser(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        if (!userService.deleteUser(userId)) throw new ResourceNotFoundException("User with such Id not found");
+        return ResponseEntity.status(204).build();
     }
 
     @PatchMapping("/me")
-    public ResponseEntity<UserDto> updateLoggedInUser(HttpServletRequest request, @RequestBody UpdateUserRequestDto updateUserDto) {
+    public ResponseEntity<GlobalResponse<UserDto>> updateLoggedInUser(HttpServletRequest request, @RequestBody @Valid UpdateUserRequestDto updateUserDto) {
         String userId = (String) request.getAttribute("userId");
-        Optional<UserDto> updatedUser = userService.updateUser(updateUserDto, userId);
-        return updatedUser.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
+        Optional<UserDto> optUpdatedUser = userService.updateUser(updateUserDto, userId);
+        return optUpdatedUser
+                .map(userDto -> ResponseEntity.ok(new GlobalResponse<>(userDto)))
+                .orElseThrow(() -> new RuntimeException("Something went wrong"));
     }
 
-    @GetMapping("/me/games/favourites/{userId}")
-    public ResponseEntity<List<GameDto>> findFavouriteGames(@PathVariable String userId) {
-        Optional<List<GameDto>> favouriteGames = userService.getFavouriteGames(userId);
-        return favouriteGames.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/me/games/favourites")
+    public ResponseEntity<GlobalResponse<List<GameDto>>> findFavouriteGames(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        List<GameDto> favouriteGames = userService.getFavouriteGames(userId);
+        return ResponseEntity.ok(new GlobalResponse<>(favouriteGames));
     }
 
-    @PostMapping("/me/games/favourites/{gameId}/{userId}")
-    public ResponseEntity<Void> addUserFavourite(@PathVariable String gameId, @PathVariable String userId) {
-        boolean isAdded = userService.addFavouriteGame(userId, gameId);
-        return isAdded ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    @PostMapping("/me/games/favourites/{gameId}")
+    public ResponseEntity<GlobalResponse<Void>> addUserFavourite(HttpServletRequest request, @PathVariable String gameId) {
+        String userId = (String) request.getAttribute("userId");
+        if (!userService.addFavouriteGame(userId, gameId)) throw new RuntimeException("Something went wrong");
+        return ResponseEntity.status(204).build();
     }
 
-    @DeleteMapping("/me/games/favourites/{gameId}/{userId}")
-    public ResponseEntity<Void> deleteUserFavourite(@PathVariable String gameId, @PathVariable String userId) {
-        boolean isDeleted = userService.removeFavouriteGame(userId, gameId);
-        return isDeleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    @DeleteMapping("/me/games/favourites/{gameId}")
+    public ResponseEntity<GlobalResponse<Void>> deleteUserFavourite(HttpServletRequest request, @PathVariable String gameId) {
+        String userId = (String) request.getAttribute("userId");
+        if (!userService.removeFavouriteGame(userId, gameId)) throw new RuntimeException("Something went wrong");
+        return ResponseEntity.status(204).build();
     }
 }
