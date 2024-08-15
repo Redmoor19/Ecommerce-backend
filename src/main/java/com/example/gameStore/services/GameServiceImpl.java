@@ -2,8 +2,8 @@ package com.example.gameStore.services;
 
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
-import com.example.gameStore.dtos.GameDtos.GamesListResponseDto;
 import com.example.gameStore.dtos.GameDtos.GamesListHeadDto;
+import com.example.gameStore.dtos.GameDtos.GamesListResponseDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
@@ -87,7 +87,11 @@ public class GameServiceImpl implements GameService {
                 .stream()
                 .map(game -> modelMapper.map(game, GameDto.class))
                 .toList();
-        int allGamesQuantity = (int) gameRepository.count();
+
+        Pageable pageableForPagination = PageRequest.of(0, 10000, Sort.by(direction, sortField));
+        Page<Game> gamesPageForPagination = gameRepository.findAll(spec, pageableForPagination);
+
+        int allGamesQuantity = gamesPageForPagination.getContent().size();
         int pagesQuantity = (int) Math.ceil((double) allGamesQuantity / pageSize);
         return new GamesListResponseDto(new GamesListHeadDto(allGamesQuantity, pagesQuantity), allGamesList);
     }
@@ -124,7 +128,10 @@ public class GameServiceImpl implements GameService {
                 .map(game -> modelMapper.map(game, GameDto.class))
                 .toList();
 
-        int allGamesQuantity = (int) gameRepository.count();
+        Pageable pageableForPagination = PageRequest.of(0, 10000, Sort.by(direction, sortField));
+        Page<Game> gamesPageForPagination = gameRepository.findAll(spec, pageableForPagination);
+
+        int allGamesQuantity = gamesPageForPagination.getContent().size();
         int pagesQuantity = (int) Math.ceil((double) allGamesQuantity / pageSize);
         return new GamesListResponseDto(new GamesListHeadDto(allGamesQuantity, pagesQuantity), allGamesList);
     }
