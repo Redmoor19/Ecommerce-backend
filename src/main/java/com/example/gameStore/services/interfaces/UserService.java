@@ -24,9 +24,7 @@ public interface UserService {
 
     boolean activateUser(String id);
 
-    Optional<UserDto> getCurrentUser();
-
-    Optional<List<GameDto>> getFavouriteGames(String userId);
+    List<GameDto> getFavouriteGames(String userId);
 
     boolean addFavouriteGame(String userId, String gameId);
 
