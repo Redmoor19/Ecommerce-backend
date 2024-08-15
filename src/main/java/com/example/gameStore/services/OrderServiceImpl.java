@@ -21,12 +21,14 @@ import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.EmailService;
 import com.example.gameStore.services.interfaces.OrderService;
 import com.example.gameStore.shared.exceptions.BadRequestException;
+import com.example.gameStore.shared.exceptions.ResourceNotFoundException;
 import com.example.gameStore.utilities.TypeConverter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.naming.AuthenticationException;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -73,22 +75,37 @@ public class OrderServiceImpl implements OrderService {
         return order.map(this::mapOrderToOrderDto);
     }
 
+    public Optional<OrderDto> findOrderById(String orderId, String userId) throws AuthenticationException {
+        UUID orderUUID = TypeConverter.convertStringToUUID(orderId, "Invalid order id format: " + orderId);
+        UUID userUUID = TypeConverter.convertStringToUUID(userId, "Invalid user id format: " + userId);
+        Optional<Order> order = orderRepository.findById(orderUUID);
+        if (order.isEmpty()) {
+            throw new BadRequestException("Order not found by id: " + orderId);
+        }
+        if (!order.get().getUser().getId().equals(userUUID)) {
+            throw new AuthenticationException("User not authorized to view this order");
+        }
+        return Optional.of(mapOrderToOrderDto(order.get()));
+    }
+
     public List<OrderDto> findOrdersByUser(String userId) {
-        List<Order> orders = orderRepository.findAllByUserId(UUID.fromString(userId));
+        List<Order> orders = orderRepository.findAllByUserId(TypeConverter.convertStringToUUID(userId));
         return orders.stream()
                 .map(this::mapOrderToOrderDto)
                 .toList();
     }
 
     public Optional<OrderDto> findCurrentOrderByUser(String userId) {
-        Optional<Order> order = orderRepository.findFirstByUserIdAndStatusAndPaymentStatus(UUID.fromString(userId), OrderStatus.PROCESSING, PaymentStatus.UNPAID);
+        Optional<Order> order = orderRepository.findFirstByUserIdAndStatusAndPaymentStatus(TypeConverter.convertStringToUUID(userId), OrderStatus.PROCESSING, PaymentStatus.UNPAID);
         return order.map(this::mapOrderToOrderDto);
     }
 
-    public boolean addGameToOrder(String gameId, String orderId) {
-        Optional<Game> game = gameRepository.findById(UUID.fromString(gameId));
-        Optional<Order> order = orderRepository.findById(UUID.fromString(orderId));
-        if (game.isEmpty() || order.isEmpty()) return false;
+    public boolean addGameToOrder(String gameId, String userId) {
+        Optional<Order> order = orderRepository.findFirstByUserIdAndStatusAndPaymentStatus(TypeConverter.convertStringToUUID(userId), OrderStatus.PROCESSING, PaymentStatus.UNPAID);
+        Optional<Game> game = gameRepository.findById(TypeConverter.convertStringToUUID(gameId));
+
+        if (game.isEmpty()) throw new BadRequestException("Game not found by id: " + gameId);
+        if (order.isEmpty()) throw new BadRequestException("order not found by userId: " + userId);
 
         order.get().setTotalPrice(order.get().getTotalPrice() + game.get().getPrice());
         orderRepository.save(order.get());
@@ -112,20 +129,20 @@ public class OrderServiceImpl implements OrderService {
         return true;
     }
 
-    public Optional<OrderDto> deleteGameFromOrder(String gameId, String orderId) {
-        Optional<Order> order = orderRepository.findById(UUID.fromString(orderId));
+    public Optional<OrderDto> deleteGameFromOrder(String gameId, String userId) {
+        Optional<Order> order = orderRepository.findFirstByUserIdAndStatusAndPaymentStatus(TypeConverter.convertStringToUUID(userId), OrderStatus.PROCESSING, PaymentStatus.UNPAID);
         if (order.isEmpty()) {
-            return Optional.empty();
+            throw new BadRequestException("order not found by userId: " + userId);
         }
 
-        Optional<Game> game = gameRepository.findById(UUID.fromString(gameId));
+        Optional<Game> game = gameRepository.findById(TypeConverter.convertStringToUUID(gameId));
         if (game.isEmpty()) {
-            return Optional.empty();
+            throw new BadRequestException("game not found by gameId: " + gameId);
         }
 
-        Optional<GameOrder> gamesInOrder = gameOrderRepository.findFirstByOrderIdAndGameId(UUID.fromString(orderId), UUID.fromString(gameId));
+        Optional<GameOrder> gamesInOrder = gameOrderRepository.findFirstByOrderIdAndGameId(order.get().getId(), TypeConverter.convertStringToUUID(gameId));
         if (gamesInOrder.isEmpty()) {
-            return Optional.empty();
+            throw new BadRequestException("can't delete game that not in order");
         }
 
         order.get().setTotalPrice(order.get().getTotalPrice() - game.get().getPrice());
@@ -135,43 +152,43 @@ public class OrderServiceImpl implements OrderService {
             q--;
             gamesInOrder.get().setQuantity(q);
             gameOrderRepository.save(gamesInOrder.get());
-            return Optional.of(mapOrderToOrderDto(orderRepository.findById(UUID.fromString(orderId)).get()));
+            return Optional.of(mapOrderToOrderDto(orderRepository.findById(order.get().getId()).get()));
         }
 
-        gameOrderRepository.deleteByGameIdAndOrderId(UUID.fromString(gameId), UUID.fromString(orderId));
-        return Optional.of(mapOrderToOrderDto(orderRepository.findById(UUID.fromString(orderId)).get()));
+        gameOrderRepository.deleteByGameIdAndOrderId(TypeConverter.convertStringToUUID(gameId), order.get().getId());
+        return Optional.of(mapOrderToOrderDto(orderRepository.findById(order.get().getId()).get()));
     }
 
     @Transactional
-    public Optional<OrderDto> cleanCurrentOrder(String orderId) {
-        Optional<Order> order = orderRepository.findById(UUID.fromString(orderId));
+    public Optional<OrderDto> cleanCurrentOrder(String userId) {
+        Optional<Order> order = orderRepository.findFirstByUserIdAndStatusAndPaymentStatus(TypeConverter.convertStringToUUID(userId), OrderStatus.PROCESSING, PaymentStatus.UNPAID);
         if (order.isEmpty()) {
-            return Optional.empty();
+            throw new BadRequestException("order not found by userId: " + userId);
         }
-        gameOrderRepository.deleteByOrderId(UUID.fromString(orderId));
+        gameOrderRepository.deleteByOrderId(order.get().getId());
         return Optional.of(mapOrderToOrderDto(order.get()));
     }
 
     public Optional<OrderDto> checkoutCurrentOrder(String userId) {
-        Optional<User> user = userRepository.findById(UUID.fromString(userId));
+        Optional<User> user = userRepository.findById(TypeConverter.convertStringToUUID(userId));
         if (user.isEmpty()) {
-            return Optional.empty();
+            throw new BadRequestException("order not found by userId: " + userId);
         }
         if (user.get().getActiveStatus() != UserStatus.ACTIVE) {
-            return Optional.empty();
+            throw new BadRequestException("User must be ACTIVE to checkout order");
         }
 
-        Optional<Order> order = orderRepository.findFirstByUserIdAndStatusAndPaymentStatus(UUID.fromString(userId), OrderStatus.PROCESSING, PaymentStatus.UNPAID);
+        Optional<Order> order = orderRepository.findFirstByUserIdAndStatusAndPaymentStatus(TypeConverter.convertStringToUUID(userId), OrderStatus.PROCESSING, PaymentStatus.UNPAID);
         if (order.isEmpty()) {
-            return Optional.empty();
+            throw new BadRequestException("Current order not found by userId: " + userId);
         }
         List<GameOrder> gamesOrder = gameOrderRepository.findAllByOrderId(order.get().getId());
         if (gamesOrder.isEmpty()) {
-            return Optional.empty();
+            throw new BadRequestException("There is no game in Current Order of User with userId: " + userId);
         }
         for (GameOrder gameOrder : gamesOrder) {
             if (gameOrder.getGame().getQuantity() < gameOrder.getQuantity()) {
-                return Optional.empty();
+                throw new ResourceNotFoundException("Not enough quantity of game: " + gameOrder.getGame().getName());
             }
         }
 
@@ -183,26 +200,26 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private Optional<OrderDto> payForOrder(String userId) {
-        Optional<User> user = userRepository.findById(UUID.fromString(userId));
+        Optional<User> user = userRepository.findById(TypeConverter.convertStringToUUID(userId));
         if (user.isEmpty()) {
-            return Optional.empty();
+            throw new BadRequestException("order not found by userId: " + userId);
         }
         if (user.get().getActiveStatus() != UserStatus.ACTIVE) {
-            return Optional.empty();
+            throw new BadRequestException("User must be ACTIVE to checkout order");
         }
 
-        Optional<Order> order = orderRepository.findFirstByUserIdAndStatusAndPaymentStatus(UUID.fromString(userId), OrderStatus.PROCESSING, PaymentStatus.WAITING);
+        Optional<Order> order = orderRepository.findFirstByUserIdAndStatusAndPaymentStatus(TypeConverter.convertStringToUUID(userId), OrderStatus.PROCESSING, PaymentStatus.WAITING);
         if (order.isEmpty()) {
-            return Optional.empty();
+            throw new BadRequestException("Current order not found by userId: " + userId);
         }
 
         List<GameOrder> gamesOrder = gameOrderRepository.findAllByOrderId(order.get().getId());
         if (gamesOrder.isEmpty()) {
-            return Optional.empty();
+            throw new BadRequestException("There is no game in Current Order of User with userId: " + userId);
         }
         for (GameOrder gameOrder : gamesOrder) {
             if (gameOrder.getGame().getQuantity() < gameOrder.getQuantity()) {
-                return Optional.empty();
+                throw new ResourceNotFoundException("Not enough quantity of game: " + gameOrder.getGame().getName());
             }
         }
 
@@ -240,11 +257,11 @@ public class OrderServiceImpl implements OrderService {
 
     public Optional<OrderDto> createNewOrder(Optional<UserDto> userDto) {
         if (userDto.isEmpty()) {
-            return Optional.empty();
+            throw new BadRequestException("User not found");
         }
         Optional<User> user = userRepository.findById(userDto.get().getId());
         if (user.isEmpty()) {
-            return Optional.empty();
+            throw new BadRequestException("User not found by id: " + userDto.get().getId());
         }
         Order order = new Order();
         order.setUser(user.get());

@@ -4,6 +4,7 @@ import com.example.gameStore.dtos.OrderDtos.OrderDto;
 import com.example.gameStore.dtos.OrderDtos.OrderWithUserDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
 
+import javax.naming.AuthenticationException;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,15 +15,17 @@ public interface OrderService {
 
     Optional<OrderDto> findOrderById(String id);
 
+    Optional<OrderDto> findOrderById(String orderId, String userId) throws AuthenticationException;
+
     List<OrderDto> findOrdersByUser(String userId);
 
     Optional<OrderDto> findCurrentOrderByUser(String userId);
 
-    boolean addGameToOrder(String gameId, String orderId);
+    boolean addGameToOrder(String gameId, String userId);
 
-    Optional<OrderDto> deleteGameFromOrder(String gameId, String orderId);
+    Optional<OrderDto> deleteGameFromOrder(String gameId, String userId);
 
-    Optional<OrderDto> cleanCurrentOrder(String orderId);
+    Optional<OrderDto> cleanCurrentOrder(String userId);
 
     Optional<OrderDto> checkoutCurrentOrder(String userId);
 
