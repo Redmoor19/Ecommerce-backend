@@ -11,6 +11,7 @@ import com.example.gameStore.entities.User;
 import com.example.gameStore.enums.UserStatus;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.AuthService;
+import com.example.gameStore.services.interfaces.OrderService;
 import com.example.gameStore.shared.TokenManager;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,8 @@ public class AuthServiceImpl implements AuthService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private JWTServiceImpl jwtService;
+    @Autowired
+    private OrderService orderService;
 
 
     public Optional<LoggedInUserDto> registerUser(CreateUserRequestDto newUser) {
@@ -56,6 +59,8 @@ public class AuthServiceImpl implements AuthService {
         String hashedToken = TokenManager.hashToken(token);
         user.setConfirmEmailToken(hashedToken);
         User savedUser = userRepository.save(user);
+
+        orderService.createNewOrder(savedUser);
 
         String jwtToken = jwtService.generateToken(savedUser);
 

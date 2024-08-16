@@ -7,6 +7,7 @@ import com.example.gameStore.services.interfaces.OrderService;
 import com.example.gameStore.shared.exceptions.BadRequestException;
 import com.example.gameStore.shared.exceptions.NoContentException;
 import com.example.gameStore.shared.exceptions.ResourceNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +18,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.naming.AuthenticationException;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/")
@@ -55,8 +56,9 @@ public class OrderController {
     }
 
     @GetMapping("users/me/orders")
-    public ResponseEntity<List<OrderDto>> findCurrentUserOrders() {
-        List<OrderDto> orders = orderService.findOrdersByUser(UUID.randomUUID().toString());
+    public ResponseEntity<List<OrderDto>> findOrdersOfCurrentUser(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        List<OrderDto> orders = orderService.findOrdersByUser(userId);
         if (orders.isEmpty()) {
             throw new NoContentException("No order found");
         }
@@ -64,53 +66,69 @@ public class OrderController {
     }
 
     @GetMapping("users/me/orders/{id}")
-    public ResponseEntity<OrderDto> findCurrentUserOrderById(@PathVariable(required = true, name = "id") String id) {
-        Optional<OrderDto> order = orderService.findOrderById(id);
+    public ResponseEntity<OrderDto> findOrderOfCurrentUserById(HttpServletRequest request,
+                                                               @PathVariable(required = true, name = "id") String id) throws AuthenticationException {
+        String userId = (String) request.getAttribute("userId");
+        Optional<OrderDto> order = orderService.findOrderById(id, userId);
         return order.map(ResponseEntity::ok).orElseThrow(() -> new ResourceNotFoundException("No order found by id: " + id));
     }
 
-    @GetMapping("users/me/orders/current/{user_id}")
-    public ResponseEntity<OrderDto> findCurrentUserCurrentOrder(@PathVariable(required = true, name = "user_id") String id) {
-        Optional<OrderDto> order = orderService.findCurrentOrderByUser(id);
+    @GetMapping("users/me/orders/current")
+    public ResponseEntity<OrderDto> findCurrentUserCurrentOrder(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        Optional<OrderDto> order = orderService.findCurrentOrderByUser(userId);
         return order.map(ResponseEntity::ok).orElseThrow(() -> new ResourceNotFoundException("No order found"));
     }
 
-    @GetMapping("/orders/user/{user_id}")
-    public ResponseEntity<List<OrderDto>> findOrderByUserId(@PathVariable(required = true, name = "user_id") String id) {
-        List<OrderDto> orders = orderService.findOrdersByUser(id);
+    @GetMapping("/orders/user")
+    public ResponseEntity<List<OrderDto>> findOrderByUserId(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        List<OrderDto> orders = orderService.findOrdersByUser(userId);
         if (orders.isEmpty()) {
-            throw new ResourceNotFoundException("No order found by user id: " + id);
+            throw new ResourceNotFoundException("No order found by user id: " + userId);
         }
         return ResponseEntity.ok(orders);
     }
 
-    @PostMapping("users/me/orders/current/game/{id}/{order_id}")
-    public ResponseEntity<Void> addGameToOrder(@PathVariable(required = true, name = "id") String id,
-                                               @PathVariable(required = true, name = "order_id") String orderId) {
-        if (!orderService.addGameToOrder(id, orderId)) {
+    @PostMapping("users/me/orders/current/game/{id}")
+    public ResponseEntity<Void> addGameToOrder(HttpServletRequest request,
+                                               @PathVariable(required = true, name = "id") String id) {
+        String userId = (String) request.getAttribute("userId");
+        if (!orderService.addGameToOrder(id, userId)) {
             throw new BadRequestException("Something went wrong");
         }
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("users/me/orders/current/game/{id}/{order_id}")
-    public ResponseEntity<OrderDto> deleteGameFromOrder(@PathVariable(required = true, name = "id") String id,
-                                                        @PathVariable(required = true, name = "order_id") String orderId) {
-        return orderService.deleteGameFromOrder(id, orderId)
+    @DeleteMapping("users/me/orders/current/game/{id}")
+    public ResponseEntity<OrderDto> deleteGameFromOrder(HttpServletRequest request,
+                                                        @PathVariable(required = true, name = "id") String id) {
+        String userId = (String) request.getAttribute("userId");
+        return orderService.deleteGameFromOrder(id, userId)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new BadRequestException("Something went wrong"));
     }
 
-    @DeleteMapping("users/me/orders/current/{order_id}")
-    public ResponseEntity<OrderDto> cleanCurrentOrder(@PathVariable(required = true, name = "order_id") String orderId) {
-        return orderService.cleanCurrentOrder(orderId)
+    @DeleteMapping("users/me/orders/current")
+    public ResponseEntity<OrderDto> cleanCurrentOrder(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        return orderService.cleanCurrentOrder(userId)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new BadRequestException("Something went wrong"));
     }
 
-    @PostMapping("users/me/orders/current/checkout/{user_id}")
-    public ResponseEntity<OrderDto> checkoutCurrentOrder(@PathVariable(required = true, name = "user_id") String user_id) {
-        return orderService.checkoutCurrentOrder(user_id)
+    @PostMapping("users/me/orders/current/checkout")
+    public ResponseEntity<OrderDto> checkoutCurrentOrder(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        return orderService.checkoutCurrentOrder(userId)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new BadRequestException("Something went wrong"));
+    }
+
+    @PostMapping("users/me/orders/current/pay")
+    public ResponseEntity<OrderDto> payCurrentOrder(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        return orderService.payForOrder(userId)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new BadRequestException("Something went wrong"));
     }
