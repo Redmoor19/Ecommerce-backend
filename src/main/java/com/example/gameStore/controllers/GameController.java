@@ -6,12 +6,15 @@ import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.GamesListResponseDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
+import com.example.gameStore.dtos.GlobalResponse;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
 import com.example.gameStore.dtos.ReviewDtos.CreateOrUpdateReviewRequestDto;
 import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
 import com.example.gameStore.services.interfaces.GameService;
+import com.example.gameStore.shared.exceptions.ResourceNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import com.example.gameStore.utilities.TypeConverter;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +41,8 @@ public class GameController {
     @Autowired
     private final GameService gameService;
 
-    @GetMapping("games")
-    public ResponseEntity<GamesListResponseDto> findAllGames(
+    @GetMapping("games/all")
+    public ResponseEntity<GlobalResponse<GamesListResponseDto>> findAllGames(
             @RequestParam(value = "sort", defaultValue = "name") String sortField,
             @RequestParam(value = "order", defaultValue = "asc") String sortOrder,
             @RequestParam(value = "page", defaultValue = "1") String pageNumber,
@@ -64,11 +67,11 @@ public class GameController {
         if (games.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(games);
+        return ResponseEntity.ok(new GlobalResponse<>(games));
     }
 
     @GetMapping("games/active")
-    public ResponseEntity<GamesListResponseDto> findAllActiveGames(
+    public ResponseEntity<GlobalResponse<GamesListResponseDto>> findAllActiveGames(
             @RequestParam(value = "sort", defaultValue = "name") String sortField,
             @RequestParam(value = "order", defaultValue = "asc") String sortOrder,
             @RequestParam(value = "page", defaultValue = "1") String pageNumber,
@@ -91,109 +94,114 @@ public class GameController {
         if (games.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(games);
+        return ResponseEntity.ok(new GlobalResponse<>(games));
     }
 
     @GetMapping("games/{id}")
-    public ResponseEntity<SingleGameWithReviewsDto> getGameById(@PathVariable(required = true, name = "id") String id) {
+    public ResponseEntity<GlobalResponse<SingleGameWithReviewsDto>> getGameById(@PathVariable String id) {
         Optional<SingleGameWithReviewsDto> gameWithReviews = gameService.getGameById(id);
-        return gameWithReviews.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return gameWithReviews
+                .map(game -> ResponseEntity.ok(new GlobalResponse<>(game)))
+                .orElseThrow(() -> new ResourceNotFoundException("Game with such Id not found"));
     }
 
     @PostMapping("games")
-    public ResponseEntity<GameDto> createGame(@RequestBody CreateGameRequestDto createGameRequestDto) {
+    public ResponseEntity<GlobalResponse<GameDto>> createGame(@RequestBody CreateGameRequestDto createGameRequestDto) {
         Optional<GameDto> game = gameService.createGame(createGameRequestDto);
-        return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return game
+                .map(createdGame -> ResponseEntity.ok(new GlobalResponse<>(createdGame)))
+                .orElseThrow(() -> new RuntimeException("Failed to create game"));
     }
 
     @PatchMapping("games")
-    public ResponseEntity<GameDto> updateGame(@RequestBody UpdateGameRequestDto updateGameRequestDto) {
+    public ResponseEntity<GlobalResponse<GameDto>> updateGame(@RequestBody UpdateGameRequestDto updateGameRequestDto) {
         Optional<GameDto> game = gameService.updateGame(updateGameRequestDto);
-        return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return game
+                .map(updatedGame -> ResponseEntity.ok(new GlobalResponse<>(updatedGame)))
+                .orElseThrow(() -> new RuntimeException("Failed to update game"));
     }
 
     @PatchMapping("games/deactivation/{gameId}")
-    public ResponseEntity<GameDto> deactivateGame(@PathVariable String gameId) {
+    public ResponseEntity<GlobalResponse<GameDto>> deactivateGame(@PathVariable String gameId) {
         Optional<GameDto> game = gameService.deactivateGame(gameId);
-        return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return game
+                .map(deactivatedGame -> ResponseEntity.ok(new GlobalResponse<>(deactivatedGame)))
+                .orElseThrow(() -> new ResourceNotFoundException("Game with such Id not found"));
     }
 
     @PatchMapping("games/activation/{gameId}")
-    public ResponseEntity<GameDto> activateGame(@PathVariable String gameId) {
+    public ResponseEntity<GlobalResponse<GameDto>> activateGame(@PathVariable String gameId) {
         Optional<GameDto> game = gameService.activateGame(gameId);
-        return game.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return game
+                .map(activatedGame -> ResponseEntity.ok(new GlobalResponse<>(activatedGame)))
+                .orElseThrow(() -> new ResourceNotFoundException("Game with such Id not found"));
     }
 
     @GetMapping("games/genres")
-    public ResponseEntity<List<String>> getAllGenres() {
+    public ResponseEntity<GlobalResponse<List<String>>> getAllGenres() {
         List<String> genreList = Genre.getAllGenresString();
-        if (genreList.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(genreList);
+        return ResponseEntity.ok(new GlobalResponse<>(genreList));
     }
 
     @GetMapping("games/genres/{genre}")
-    public ResponseEntity<List<GameDto>> getGamesByGenre(@PathVariable String genre) {
+    public ResponseEntity<GlobalResponse<List<GameDto>>> getGamesByGenre(@PathVariable String genre) {
         List<GameDto> gamesByGenre = gameService.getGamesByGenre(genre);
-        if (gamesByGenre.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(gamesByGenre);
+        return ResponseEntity.ok(new GlobalResponse<>(gamesByGenre));
     }
 
     @GetMapping("games/player-support")
-    public ResponseEntity<List<String>> getAllPlayerSupport() {
+    public ResponseEntity<GlobalResponse<List<String>>> getAllPlayerSupport() {
         List<String> playerSupport = PlayerSupport.getAllPlayerSupportString();
-        if (playerSupport.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(playerSupport);
+        return ResponseEntity.ok(new GlobalResponse<>(playerSupport));
     }
 
     @GetMapping("games/player-support/{playerSupport}")
-    public ResponseEntity<List<GameDto>> getGamesByPlayerSupport(@PathVariable String playerSupport) {
+    public ResponseEntity<GlobalResponse<List<GameDto>>> getGamesByPlayerSupport(@PathVariable String playerSupport) {
         List<GameDto> gamesByPlayerSupport = gameService.getGamesByPlayerSupport(playerSupport);
-        if (gamesByPlayerSupport.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(gamesByPlayerSupport);
+        return ResponseEntity.ok(new GlobalResponse<>(gamesByPlayerSupport));
     }
 
-
-    // I pass userId through URL temporarily since I can't get ID from request. Remember to delete after auth is complete!
-    @PostMapping("games/{gameId}/reviews/{userId}")
-    public ResponseEntity<ReviewDto> createReview(@PathVariable String gameId, @PathVariable String userId, @RequestBody CreateOrUpdateReviewRequestDto reviewDto) {
+    @PostMapping("games/reviews/{gameId}")
+    public ResponseEntity<GlobalResponse<ReviewDto>> createReview(HttpServletRequest request, @PathVariable String gameId, @RequestBody CreateOrUpdateReviewRequestDto reviewDto) {
+        String userId = (String) request.getAttribute("userId");
         Optional<ReviewDto> review = gameService.createReview(gameId, userId, reviewDto);
-        return review.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return review
+                .map(createdReview -> ResponseEntity.ok(new GlobalResponse<>(createdReview)))
+                .orElseThrow(() -> new RuntimeException("Failed to create review"));
     }
 
-    @PatchMapping("games/reviews/{reviewId}/user/{userId}")
-    public ResponseEntity<ReviewDto> updateReview(@PathVariable String reviewId, @PathVariable String userId, @RequestBody CreateOrUpdateReviewRequestDto createOrUpdateReviewRequestDto) {
+    @PatchMapping("games/reviews/{reviewId}")
+    public ResponseEntity<GlobalResponse<ReviewDto>> updateReview(HttpServletRequest request, @PathVariable String reviewId, @RequestBody CreateOrUpdateReviewRequestDto createOrUpdateReviewRequestDto) {
+        String userId = (String) request.getAttribute("userId");
         Optional<ReviewDto> review = gameService.updateReview(reviewId, userId, createOrUpdateReviewRequestDto);
-        return review.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return review
+                .map(updatedReview -> ResponseEntity.ok(new GlobalResponse<>(updatedReview)))
+                .orElseThrow(() -> new ResourceNotFoundException("Review with such Id not found or you do not have permission to update it"));
     }
 
-    @DeleteMapping("games/reviews/{reviewId}/user/{userId}")
-    public ResponseEntity<ReviewDto> deleteReview(@PathVariable String reviewId, @PathVariable String userId) {
+    @DeleteMapping("games/reviews/{reviewId}")
+    public ResponseEntity<GlobalResponse<Void>> deleteReview(HttpServletRequest request, @PathVariable String reviewId) {
+        String userId = (String) request.getAttribute("userId");
         if (gameService.deleteReview(reviewId, userId)) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return ResponseEntity.ok(new GlobalResponse<>(null));
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        throw new ResourceNotFoundException("Review with such Id not found or you do not have permission to delete it");
     }
 
-    @PostMapping("games/{gameId}/keys")
-    public ResponseEntity<KeyCreationDto> addKeyToGame(@PathVariable String gameId) {
+    @PostMapping("games/keys/{gameId}")
+    public ResponseEntity<GlobalResponse<KeyCreationDto>> addKeyToGame(@PathVariable String gameId) {
         Optional<KeyCreationDto> key = gameService.addKeyToGame(gameId);
-        return key.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return key
+                .map(createdKey -> ResponseEntity.ok(new GlobalResponse<>(createdKey)))
+                .orElseThrow(() -> new ResourceNotFoundException("Failed to add key to game"));
     }
 
     @GetMapping("games/keys/{gameId}")
-    public ResponseEntity<Integer> getGameKeysAmount(@PathVariable String gameId) {
+    public ResponseEntity<GlobalResponse<Integer>> getGameKeysAmount(@PathVariable String gameId) {
         Optional<Integer> keysAmountOpt = gameService.countGameKeys(gameId);
         return keysAmountOpt
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .map(keysAmount -> ResponseEntity.ok(new GlobalResponse<>(keysAmount)))
+                .orElseThrow(() -> new ResourceNotFoundException("Game with such Id not found"));
     }
 
 }
