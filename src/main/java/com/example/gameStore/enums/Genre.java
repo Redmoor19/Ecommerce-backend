@@ -4,9 +4,11 @@ package com.example.gameStore.enums;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Getter
 public enum Genre {
@@ -45,12 +47,17 @@ public enum Genre {
         return false;
     }
 
-    public static List<String> getAllGenres() {
+    public static List<String> getAllGenresString() {
         List<String> arrayList = new ArrayList<>();
         for (Genre se : Genre.values()) {
             arrayList.add(se.name);
         }
         return arrayList;
+    }
+
+    public static List<Genre> getAllGenres() {
+        return Arrays.stream(Genre.values())
+                .collect(Collectors.toList());
     }
 
     public static Genre fromString(String name) {

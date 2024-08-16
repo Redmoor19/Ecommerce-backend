@@ -3,6 +3,7 @@ package com.example.gameStore.controllers;
 
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
+import com.example.gameStore.dtos.GameDtos.GamesListResponseDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -36,8 +38,61 @@ public class GameController {
     private final GameService gameService;
 
     @GetMapping("games")
-    public ResponseEntity<List<GameDto>> findAllGames() {
-        List<GameDto> games = gameService.findAllGames();
+    public ResponseEntity<GamesListResponseDto> findAllGames(
+            @RequestParam(value = "sort", defaultValue = "name") String sortField,
+            @RequestParam(value = "order", defaultValue = "asc") String sortOrder,
+            @RequestParam(value = "page", defaultValue = "1") String pageNumber,
+            @RequestParam(value = "size", defaultValue = "20") String pageSize,
+            @RequestParam(value = "search", required = false) String searchKeyword,
+            @RequestParam(value = "genres", required = false) List<String> genres,
+            @RequestParam(value = "playerSupports", required = false) List<String> playerSupport
+    ) {
+        int convertedPageNumber, convertedPageSize;
+        try {
+            convertedPageNumber = Integer.parseInt(pageNumber);
+            convertedPageSize = Integer.parseInt(pageSize);
+        } catch (Exception e) {
+            throw new NumberFormatException("Wrong data format for page and size");
+        }
+        GamesListResponseDto games = gameService.findAllGames(
+                sortField,
+                sortOrder,
+                convertedPageNumber,
+                convertedPageSize,
+                searchKeyword,
+                genres,
+                playerSupport
+        );
+        if (games.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(games);
+    }
+
+    @GetMapping("games/active")
+    public ResponseEntity<GamesListResponseDto> findAllActiveGames(
+            @RequestParam(value = "sort", defaultValue = "name") String sortField,
+            @RequestParam(value = "order", defaultValue = "asc") String sortOrder,
+            @RequestParam(value = "page", defaultValue = "1") String pageNumber,
+            @RequestParam(value = "size", defaultValue = "20") String pageSize,
+            @RequestParam(value = "search", required = false) String searchKeyword,
+            @RequestParam(value = "genres", required = false) List<String> genres,
+            @RequestParam(value = "playerSupports", required = false) List<String> playerSupport) {
+        int convertedPageNumber, convertedPageSize;
+        try {
+            convertedPageNumber = Integer.parseInt(pageNumber);
+            convertedPageSize = Integer.parseInt(pageSize);
+        } catch (Exception e) {
+            throw new NumberFormatException("Wrong data format for page and size");
+        }
+        GamesListResponseDto games = gameService.findAllActiveGames(
+                sortField,
+                sortOrder,
+                convertedPageNumber,
+                convertedPageSize,
+                searchKeyword,
+                genres,
+                playerSupport);
         if (games.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -76,7 +131,7 @@ public class GameController {
 
     @GetMapping("games/genres")
     public ResponseEntity<List<String>> getAllGenres() {
-        List<String> genreList = Genre.getAllGenres();
+        List<String> genreList = Genre.getAllGenresString();
         if (genreList.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -94,7 +149,7 @@ public class GameController {
 
     @GetMapping("games/player-support")
     public ResponseEntity<List<String>> getAllPlayerSupport() {
-        List<String> playerSupport = PlayerSupport.getAllPlayerSupport();
+        List<String> playerSupport = PlayerSupport.getAllPlayerSupportString();
         if (playerSupport.isEmpty()) {
             return ResponseEntity.noContent().build();
         }

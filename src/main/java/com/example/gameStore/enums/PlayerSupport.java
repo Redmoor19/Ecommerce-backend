@@ -3,9 +3,11 @@ package com.example.gameStore.enums;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Getter
 public enum PlayerSupport {
@@ -37,7 +39,7 @@ public enum PlayerSupport {
         this.name = name;
     }
 
-    public static List<String> getAllPlayerSupport() {
+    public static List<String> getAllPlayerSupportString() {
         List<String> playerSupportList = new ArrayList<>();
         for (PlayerSupport ps : PlayerSupport.values()) {
             playerSupportList.add(ps.name);
@@ -45,9 +47,8 @@ public enum PlayerSupport {
         return playerSupportList;
     }
 
-    public static PlayerSupport fromString(String name) {
-        return NAME_TO_ENUM.get(name.toUpperCase());
+    public static List<PlayerSupport> getAllPlayerSupport() {
+        return Arrays.stream(PlayerSupport.values())
+                .collect(Collectors.toList());
     }
-
-
 }

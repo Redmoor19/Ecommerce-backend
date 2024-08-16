@@ -2,6 +2,8 @@ package com.example.gameStore.services;
 
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
+import com.example.gameStore.dtos.GameDtos.GamesListHeadDto;
+import com.example.gameStore.dtos.GameDtos.GamesListResponseDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
@@ -13,17 +15,25 @@ import com.example.gameStore.entities.Key;
 import com.example.gameStore.entities.Review;
 import com.example.gameStore.entities.User;
 import com.example.gameStore.enums.Genre;
+import com.example.gameStore.enums.PlayerSupport;
 import com.example.gameStore.repositories.GameRepository;
 import com.example.gameStore.repositories.KeyRepository;
 import com.example.gameStore.repositories.ReviewRepository;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.GameService;
+import com.example.gameStore.utilities.GameSpecification;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -50,9 +60,80 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public List<GameDto> findAllGames() {
-        List<Game> games = gameRepository.findAll();
-        return games.stream().map(game -> modelMapper.map(game, GameDto.class)).toList();
+    public GamesListResponseDto findAllGames(String sortField, String sortOrder, int pageNumber, int pageSize, String searchKeyword, List<String> genres, List<String> playerSupport) {
+        isSortFieldValid(sortField);
+
+        if (pageSize < 1) throw new IllegalArgumentException("Page size must be greater than zero.");
+        Sort.Direction direction = Sort.Direction.fromString(sortOrder);
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(direction, sortField));
+
+        List<Genre> genreList = Optional.ofNullable(genres)
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.stream()
+                        .map(Genre::valueOf)
+                        .toList())
+                .orElseGet(Genre::getAllGenres);
+
+        List<PlayerSupport> supportList = Optional.ofNullable(playerSupport)
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.stream()
+                        .map(PlayerSupport::valueOf)
+                        .toList())
+                .orElseGet(PlayerSupport::getAllPlayerSupport);
+
+        Specification<Game> spec = GameSpecification.withFilters(searchKeyword, genreList, supportList);
+        Page<Game> gamesPage = gameRepository.findAll(spec, pageable);
+        List<GameDto> allGamesList = gamesPage.getContent()
+                .stream()
+                .map(game -> modelMapper.map(game, GameDto.class))
+                .toList();
+
+        Pageable pageableForPagination = PageRequest.of(0, 10000, Sort.by(direction, sortField));
+        Page<Game> gamesPageForPagination = gameRepository.findAll(spec, pageableForPagination);
+
+        int allGamesQuantity = gamesPageForPagination.getContent().size();
+        int pagesQuantity = (int) Math.ceil((double) allGamesQuantity / pageSize);
+        return new GamesListResponseDto(new GamesListHeadDto(allGamesQuantity, pagesQuantity), allGamesList);
+    }
+
+    @Override
+    public GamesListResponseDto findAllActiveGames(String sortField, String sortOrder, int pageNumber, int pageSize, String searchKeyword, List<String> genres, List<String> playerSupport) {
+        isSortFieldValid(sortField);
+
+        if (pageSize < 1) throw new IllegalArgumentException("Page size must be greater than zero.");
+        Sort.Direction direction = Sort.Direction.fromString(sortOrder);
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(direction, sortField));
+
+        List<Genre> genreList = Optional.ofNullable(genres)
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.stream()
+                        .map(Genre::valueOf)
+                        .toList())
+                .orElseGet(Genre::getAllGenres);
+
+        List<PlayerSupport> supportList = Optional.ofNullable(playerSupport)
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.stream()
+                        .map(PlayerSupport::valueOf)
+                        .toList())
+                .orElseGet(PlayerSupport::getAllPlayerSupport);
+
+        Specification<Game> spec = Specification
+                .where(GameSpecification.isActive())
+                .and(GameSpecification.withFilters(searchKeyword, genreList, supportList));
+        Page<Game> gamesPage = gameRepository.findAll(spec, pageable);
+
+        List<GameDto> allGamesList = gamesPage.getContent()
+                .stream()
+                .map(game -> modelMapper.map(game, GameDto.class))
+                .toList();
+
+        Pageable pageableForPagination = PageRequest.of(0, 10000, Sort.by(direction, sortField));
+        Page<Game> gamesPageForPagination = gameRepository.findAll(spec, pageableForPagination);
+
+        int allGamesQuantity = gamesPageForPagination.getContent().size();
+        int pagesQuantity = (int) Math.ceil((double) allGamesQuantity / pageSize);
+        return new GamesListResponseDto(new GamesListHeadDto(allGamesQuantity, pagesQuantity), allGamesList);
     }
 
     @Override
@@ -199,5 +280,14 @@ public class GameServiceImpl implements GameService {
         game.setAverageRating(newAverageRating.orElseThrow(() ->
                 new NoSuchElementException("Average rating for the game could not be calculated!")));
         gameRepository.save(game);
+    }
+
+    private void isSortFieldValid(String sortField) {
+        boolean isValidField = Arrays.stream(Game.class.getDeclaredFields())
+                .anyMatch(f -> f.getName().equals(sortField));
+
+        if (!isValidField) {
+            throw new IllegalArgumentException("Invalid sort field: " + sortField);
+        }
     }
 }
