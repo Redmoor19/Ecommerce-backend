@@ -139,7 +139,6 @@ public class GameServiceImpl implements GameService {
     @Override
     public Optional<SingleGameWithReviewsDto> getGameById(String id) {
         Optional<Game> game = gameRepository.findById(TypeConverter.convertStringToUUID(id));
-        if (game.isEmpty()) return Optional.empty();
         List<EmbeddedReviewDto> reviews = reviewRepository.findReviewsByGameId(TypeConverter.convertStringToUUID(id));
         SingleGameWithReviewsDto singleGameWithReviewsDto = modelMapper.map(game, SingleGameWithReviewsDto.class);
         singleGameWithReviewsDto.setReviews(reviews);

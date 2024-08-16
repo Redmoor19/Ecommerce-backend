@@ -44,7 +44,8 @@ public class SecurityConfiguration {
                 )
                 .userDetailsService(userDetailsService)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(customHttp403ForbiddenEntryPoint()));
         return http.build();
     }
 
@@ -56,5 +57,10 @@ public class SecurityConfiguration {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
+    public CustomHttp403ForbiddenEntryPoint customHttp403ForbiddenEntryPoint() {
+        return new CustomHttp403ForbiddenEntryPoint();
     }
 }
