@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.naming.AuthenticationException;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -109,6 +110,7 @@ public class OrderServiceImpl implements OrderService {
         if (order.isEmpty()) throw new BadRequestException("order not found by userId: " + userId);
 
         order.get().setTotalPrice(order.get().getTotalPrice() + game.get().getPrice());
+        order.get().setUpdatedAt(Timestamp.from(Instant.now()));
         orderRepository.save(order.get());
 
         List<GameOrder> gamesOrder = gameOrderRepository.findAllByOrderId(order.get().getId());
@@ -194,6 +196,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.get().setPaymentStatus(PaymentStatus.WAITING);
+        order.get().setUpdatedAt(Timestamp.from(Instant.now()));
         Order checkoutOrder = orderRepository.save(order.get());
         createNewOrder(user.get());
 
@@ -220,6 +223,7 @@ public class OrderServiceImpl implements OrderService {
         if (!payDto.getIsPaidSuccessfully()) {
             order.get().setPaymentStatus(PaymentStatus.UNPAID);
             order.get().setStatus(OrderStatus.DECLINED);
+            order.get().setUpdatedAt(Timestamp.from(Instant.now()));
             Order unpaidOrder = orderRepository.save(order.get());
             return Optional.of(mapOrderToOrderDto(unpaidOrder));
         }
@@ -236,12 +240,14 @@ public class OrderServiceImpl implements OrderService {
 
         order.get().setPaymentStatus(PaymentStatus.PAID);
         order.get().setStatus(OrderStatus.APPROVED);
+        order.get().setUpdatedAt(Timestamp.from(Instant.now()));
         orderRepository.save(order.get());
 
         Map<String, List<String>> gameKeys = getKeysByGamesOrder(gamesOrder);
         emailService.sendMessagePurchasedKeys(user.get().getEmail(), gameKeys);
 
         order.get().setStatus(OrderStatus.DELIVERED);
+        order.get().setUpdatedAt(Timestamp.from(Instant.now()));
         Order paidOrder = orderRepository.save(order.get());
 
         return Optional.of(mapOrderToOrderDto(paidOrder));
@@ -280,6 +286,7 @@ public class OrderServiceImpl implements OrderService {
         order.setPaymentStatus(PaymentStatus.UNPAID);
         order.setTotalPrice(0.0);
         order.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        order.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
         Order newOrder = orderRepository.save(order);
         return Optional.of(modelMapper.map(newOrder, OrderDto.class));
     }
@@ -290,6 +297,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.PROCESSING);
         order.setPaymentStatus(PaymentStatus.UNPAID);
         order.setTotalPrice(0.0);
+        order.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         order.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         Order newOrder = orderRepository.save(order);
         return Optional.of(modelMapper.map(newOrder, OrderDto.class));
@@ -309,5 +317,19 @@ public class OrderServiceImpl implements OrderService {
         List<GameOrder> gameOrders = gameOrderRepository.findAllByOrderId(order.getId());
         gameOrders.forEach(go -> dto.getGames().add(modelMapper.map(go, GameOrderDto.class)));
         return dto;
+    }
+
+    public void declineAllOrdersIfDelay() {
+        List<Order> orders = orderRepository.findAllByStatusAndPaymentStatus(OrderStatus.PROCESSING, PaymentStatus.WAITING);
+        orders.forEach(order -> {
+            System.out.println(order.getId());
+            if (order.getUpdatedAt().before(Timestamp.from(Instant.now().minusSeconds(60 * 30)))) {
+                System.out.println("Declined");
+                order.setStatus(OrderStatus.DECLINED);
+                order.setPaymentStatus(PaymentStatus.UNPAID);
+                order.setUpdatedAt(Timestamp.from(Instant.now()));
+                orderRepository.save(order);
+            }
+        });
     }
 }

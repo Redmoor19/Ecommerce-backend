@@ -45,6 +45,9 @@ public class Order {
     @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ", nullable = false)
     private Timestamp createdAt;
 
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ", nullable = false)
+    private Timestamp updatedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", columnDefinition = "VARCHAR(255) DEFAULT 'PROCESSING'", nullable = false)
     private OrderStatus status;
@@ -59,5 +62,6 @@ public class Order {
         this.setStatus(OrderStatus.PROCESSING);
         this.setPaymentStatus(PaymentStatus.UNPAID);
         this.setCreatedAt(Timestamp.from(Instant.now()));
+        this.setUpdatedAt(Timestamp.from(Instant.now()));
     }
 }
