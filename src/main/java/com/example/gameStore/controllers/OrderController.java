@@ -3,6 +3,7 @@ package com.example.gameStore.controllers;
 import com.example.gameStore.dtos.GlobalResponse;
 import com.example.gameStore.dtos.OrderDtos.OrderDto;
 import com.example.gameStore.dtos.OrderDtos.OrderWithUserDto;
+import com.example.gameStore.dtos.OrderDtos.PayDto;
 import com.example.gameStore.services.interfaces.OrderService;
 import com.example.gameStore.shared.exceptions.BadRequestException;
 import com.example.gameStore.shared.exceptions.NoContentException;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -126,9 +128,10 @@ public class OrderController {
     }
 
     @PostMapping("users/me/orders/current/pay")
-    public ResponseEntity<OrderDto> payCurrentOrder(HttpServletRequest request) {
+    public ResponseEntity<OrderDto> payCurrentOrder(HttpServletRequest request,
+                                                    @RequestBody PayDto payDto) {
         String userId = (String) request.getAttribute("userId");
-        return orderService.payForOrder(userId)
+        return orderService.payForOrder(payDto, userId)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new BadRequestException("Something went wrong"));
     }
