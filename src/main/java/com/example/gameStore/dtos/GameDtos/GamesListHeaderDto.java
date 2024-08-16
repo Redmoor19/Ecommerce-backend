@@ -9,7 +9,9 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class GamesListHeadDto {
-    private int allGamesQuantity;
-    private int pagesQuantity;
+public class GamesListHeaderDto {
+    private int totalGamesCount;
+    private int totalPages;
+    private int gamesPerPage;
+    private int currentPageNumber;
 }

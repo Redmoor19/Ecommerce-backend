@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GamesListResponseDto {
-    private GamesListHeadDto allGamesHead;
+    private GamesListHeaderDto allGamesHead;
     private List<GameDto> allGamesList;
 
     public boolean isEmpty() {

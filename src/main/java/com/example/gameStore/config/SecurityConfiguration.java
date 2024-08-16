@@ -34,7 +34,7 @@ public class SecurityConfiguration {
                         .requestMatchers("api/v1/games/all/**").hasAuthority(UserRole.ADMIN.name())
                         .requestMatchers("api/v1/games/keys/**").hasAuthority(UserRole.ADMIN.name())
                         .requestMatchers(HttpMethod.GET, "api/v1/games/**").permitAll()
-                        .requestMatchers("api/v1/games/reviews/**").permitAll()
+                        .requestMatchers("api/v1/games/reviews/**").hasAnyAuthority(UserRole.ADMIN.name(), UserRole.USER.name())
                         .requestMatchers("api/v1/games/**").hasAuthority(UserRole.ADMIN.name())
                         .requestMatchers("api/v1/users/me/**").hasAnyAuthority(UserRole.ADMIN.name(), UserRole.USER.name())
                         .requestMatchers("api/v1/users/**").hasAuthority(UserRole.ADMIN.name())

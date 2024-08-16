@@ -2,7 +2,7 @@ package com.example.gameStore.services;
 
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
-import com.example.gameStore.dtos.GameDtos.GamesListHeadDto;
+import com.example.gameStore.dtos.GameDtos.GamesListHeaderDto;
 import com.example.gameStore.dtos.GameDtos.GamesListResponseDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
@@ -93,7 +93,7 @@ public class GameServiceImpl implements GameService {
 
         int allGamesQuantity = gamesPageForPagination.getContent().size();
         int pagesQuantity = (int) Math.ceil((double) allGamesQuantity / pageSize);
-        return new GamesListResponseDto(new GamesListHeadDto(allGamesQuantity, pagesQuantity), allGamesList);
+        return new GamesListResponseDto(new GamesListHeaderDto(allGamesQuantity, pagesQuantity, (int) pageSize, (int) pageNumber), allGamesList);
     }
 
     @Override
@@ -133,7 +133,7 @@ public class GameServiceImpl implements GameService {
 
         int allGamesQuantity = gamesPageForPagination.getContent().size();
         int pagesQuantity = (int) Math.ceil((double) allGamesQuantity / pageSize);
-        return new GamesListResponseDto(new GamesListHeadDto(allGamesQuantity, pagesQuantity), allGamesList);
+        return new GamesListResponseDto(new GamesListHeaderDto(allGamesQuantity, pagesQuantity, (int) pageSize, (int) pageNumber), allGamesList);
     }
 
     @Override
