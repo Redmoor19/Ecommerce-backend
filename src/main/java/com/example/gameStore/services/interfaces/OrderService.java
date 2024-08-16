@@ -3,6 +3,7 @@ package com.example.gameStore.services.interfaces;
 import com.example.gameStore.dtos.OrderDtos.OrderDto;
 import com.example.gameStore.dtos.OrderDtos.OrderWithUserDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
+import com.example.gameStore.entities.User;
 
 import javax.naming.AuthenticationException;
 import java.util.List;
@@ -29,5 +30,9 @@ public interface OrderService {
 
     Optional<OrderDto> checkoutCurrentOrder(String userId);
 
+    Optional<OrderDto> payForOrder(String userId);
+
     Optional<OrderDto> createNewOrder(Optional<UserDto> userDto);
+
+    Optional<OrderDto> createNewOrder(User user);
 }

@@ -124,4 +124,12 @@ public class OrderController {
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new BadRequestException("Something went wrong"));
     }
+
+    @PostMapping("users/me/orders/current/pay")
+    public ResponseEntity<OrderDto> payCurrentOrder(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        return orderService.payForOrder(userId)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new BadRequestException("Something went wrong"));
+    }
 }

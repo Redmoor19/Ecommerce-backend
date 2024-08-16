@@ -193,13 +193,13 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.get().setPaymentStatus(PaymentStatus.WAITING);
-        orderRepository.save(order.get());
+        Order checkoutOrder = orderRepository.save(order.get());
         createNewOrder(user.get());
 
-        return payForOrder(userId);
+        return Optional.of(mapOrderToOrderDto(checkoutOrder));
     }
 
-    private Optional<OrderDto> payForOrder(String userId) {
+    public Optional<OrderDto> payForOrder(String userId) {
         Optional<User> user = userRepository.findById(TypeConverter.convertStringToUUID(userId));
         if (user.isEmpty()) {
             throw new BadRequestException("order not found by userId: " + userId);
@@ -231,9 +231,9 @@ public class OrderServiceImpl implements OrderService {
         emailService.sendMessagePurchasedKeys(user.get().getEmail(), gameKeys);
 
         order.get().setStatus(OrderStatus.DELIVERED);
-        Order checkoutOrder = orderRepository.save(order.get());
+        Order paidOrder = orderRepository.save(order.get());
 
-        return Optional.of(mapOrderToOrderDto(checkoutOrder));
+        return Optional.of(mapOrderToOrderDto(paidOrder));
     }
 
     private Map<String, List<String>> getKeysByGamesOrder(List<GameOrder> gamesOrder) {
