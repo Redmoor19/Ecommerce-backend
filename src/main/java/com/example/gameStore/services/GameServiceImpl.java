@@ -21,6 +21,8 @@ import com.example.gameStore.repositories.KeyRepository;
 import com.example.gameStore.repositories.ReviewRepository;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.GameService;
+import com.example.gameStore.shared.exceptions.BadRequestException;
+import com.example.gameStore.shared.exceptions.NoContentException;
 import com.example.gameStore.utilities.GameSpecification;
 import com.example.gameStore.utilities.TypeConverter;
 import org.modelmapper.ModelMapper;
@@ -38,6 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -138,24 +141,29 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Optional<SingleGameWithReviewsDto> getGameById(String id) {
-        Optional<Game> game = gameRepository.findById(TypeConverter.convertStringToUUID(id));
-        List<EmbeddedReviewDto> reviews = reviewRepository.findReviewsByGameId(TypeConverter.convertStringToUUID(id));
-        SingleGameWithReviewsDto singleGameWithReviewsDto = modelMapper.map(game, SingleGameWithReviewsDto.class);
-        singleGameWithReviewsDto.setReviews(reviews);
-        return Optional.of(singleGameWithReviewsDto);
+        UUID gameId = TypeConverter.convertStringToUUID(id, "Invalid game id format: " + id);
+        Optional<Game> game = gameRepository.findById(gameId);
+        if(game.isEmpty()) throw new NoContentException("Searching game not found!");
+
+        return game.map(g -> {
+            SingleGameWithReviewsDto singleGameWithReviewsDto = modelMapper.map(g, SingleGameWithReviewsDto.class);
+            List<EmbeddedReviewDto> reviews = reviewRepository.findReviewsByGameId(gameId);
+            singleGameWithReviewsDto.setReviews(reviews);
+            return singleGameWithReviewsDto;
+        });
     }
 
     @Override
     public Optional<GameDto> createGame(CreateGameRequestDto createGameRequestDto) {
-        Game createGame = modelMapper.map(createGameRequestDto, Game.class);
-        Game savedGame = gameRepository.save(createGame);
-        return Optional.of(modelMapper.map(savedGame, GameDto.class));
+        Game gameToCreate = modelMapper.map(createGameRequestDto, Game.class);
+        Game savedGame = gameRepository.save(gameToCreate);
+        return Optional.of(savedGame).map(game -> modelMapper.map(game, GameDto.class));
     }
 
     @Override
     public Optional<GameDto> updateGame(@RequestBody UpdateGameRequestDto updateGameRequestDto) {
         Optional<Game> updateGame = gameRepository.findById(updateGameRequestDto.getId());
-        if (updateGame.isEmpty()) return Optional.empty();
+        if (updateGame.isEmpty()) throw new NoContentException("Updating game not found!");
         Game existingGame = updateGame.get();
         if (areNotEnumListsEquals(existingGame.getGenreList(), updateGameRequestDto.getGenreList())) {
             existingGame.setGenreList(updateGameRequestDto.getGenreList());
@@ -171,7 +179,7 @@ public class GameServiceImpl implements GameService {
     @Override
     public Optional<GameDto> deactivateGame(String gameId) {
         Optional<Game> updateGame = gameRepository.findById(TypeConverter.convertStringToUUID(gameId));
-        if (updateGame.isEmpty()) return Optional.empty();
+        if (updateGame.isEmpty()) throw new NoContentException("Deactivating game not found!");
 
         Game deactivatingGame = updateGame.get();
         if (deactivatingGame.isActive()) {
@@ -185,7 +193,8 @@ public class GameServiceImpl implements GameService {
     @Override
     public Optional<GameDto> activateGame(String gameId) {
         Optional<Game> updateGame = gameRepository.findById(TypeConverter.convertStringToUUID(gameId));
-        if (updateGame.isEmpty() || updateGame.get().getQuantity() == 0) return Optional.empty();
+        if (updateGame.isEmpty()) throw new NoContentException("Activating game not found!");
+        if(updateGame.get().getQuantity() == 0) throw new NoContentException("There are no available keys for this game. Activation is not possible.");
 
         Game activatingGame = updateGame.get();
         if (!activatingGame.isActive()) {
@@ -193,7 +202,7 @@ public class GameServiceImpl implements GameService {
             Game savedGame = gameRepository.save(activatingGame);
             return Optional.of(modelMapper.map(savedGame, GameDto.class));
         }
-        return Optional.empty();
+        throw new BadRequestException("The game is already active");
     }
 
     @Override
@@ -216,7 +225,8 @@ public class GameServiceImpl implements GameService {
         Review review = modelMapper.map(reviewDto, Review.class);
         Optional<User> optUser = userRepository.findById(TypeConverter.convertStringToUUID(userId));
         Optional<Game> optGame = gameRepository.findById(TypeConverter.convertStringToUUID(gameId));
-        if (optUser.isEmpty() || optGame.isEmpty()) return Optional.empty();
+        if (optUser.isEmpty()) throw new NoContentException("User not found!");
+        if (optGame.isEmpty()) throw new NoContentException("Game not found!");
         review.setUserId(optUser.get());
         review.setGameId(optGame.get());
         Review savedReview = reviewRepository.save(review);
@@ -228,9 +238,9 @@ public class GameServiceImpl implements GameService {
     public Optional<ReviewDto> updateReview(String reviewId, String userId, CreateOrUpdateReviewRequestDto createOrUpdateReviewRequestDto) {
         Optional<Review> optionalUpdatingReview = reviewRepository.findById(TypeConverter.convertStringToUUID(reviewId));
         Optional<User> optUser = userRepository.findById(TypeConverter.convertStringToUUID(userId));
-        if (optUser.isEmpty()) return Optional.empty();
-        if (optionalUpdatingReview.isEmpty() || !optionalUpdatingReview.get().getUserId().getId().equals(optUser.get().getId()))
-            return Optional.empty();
+        if (optUser.isEmpty()) throw new NoContentException("User not found!");
+        if (optionalUpdatingReview.isEmpty()) throw new NoContentException("Review not found!");
+        if (!optionalUpdatingReview.get().getUserId().getId().equals(optUser.get().getId())) throw new BadRequestException("You don't have permission to edit this review.");
         Review updatedReview = optionalUpdatingReview.get();
         Game updatingGame = gameRepository.findById(updatedReview.getGameId().getId())
                 .orElseThrow(() -> new NoSuchElementException("Game not found with ID: " + updatedReview.getGameId().getId()));
@@ -244,11 +254,10 @@ public class GameServiceImpl implements GameService {
     @Override
     public boolean deleteReview(String reviewId, String userId) {
         Optional<User> optUser = userRepository.findById(TypeConverter.convertStringToUUID(userId));
-        if (optUser.isEmpty()) return false;
+        if (optUser.isEmpty()) throw new NoContentException("User not found!");
         Optional<Review> optionalDeletingReview = reviewRepository.findById(TypeConverter.convertStringToUUID(reviewId));
-        if (optionalDeletingReview.isEmpty()
-                || !optionalDeletingReview.get().getUserId().getId().equals(optUser.get().getId()))
-            return false;
+        if (optionalDeletingReview.isEmpty()) throw new NoContentException("Review not found!");
+        if (!optionalDeletingReview.get().getUserId().getId().equals(optUser.get().getId())) throw new BadRequestException("You don't have permission to delete this review.");
         Game updatingGame = gameRepository.findById(optionalDeletingReview.get().getGameId().getId())
                 .orElseThrow(() -> new NoSuchElementException("Game not found with ID: " + optionalDeletingReview.get().getGameId().getId()));
         reviewRepository.delete(optionalDeletingReview.get());
