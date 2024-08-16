@@ -12,6 +12,7 @@ import com.example.gameStore.dtos.ReviewDtos.ReviewDto;
 import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
 import com.example.gameStore.services.interfaces.GameService;
+import com.example.gameStore.utilities.TypeConverter;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,13 +48,10 @@ public class GameController {
             @RequestParam(value = "genres", required = false) List<String> genres,
             @RequestParam(value = "playerSupports", required = false) List<String> playerSupport
     ) {
-        int convertedPageNumber, convertedPageSize;
-        try {
-            convertedPageNumber = Integer.parseInt(pageNumber);
-            convertedPageSize = Integer.parseInt(pageSize);
-        } catch (Exception e) {
-            throw new NumberFormatException("Wrong data format for page and size");
-        }
+
+        int convertedPageNumber = TypeConverter.convertStringToInt(pageNumber, "Wrong data format for page number");
+        int convertedPageSize = TypeConverter.convertStringToInt(pageSize, "Wrong data format for page size");
+
         GamesListResponseDto games = gameService.findAllGames(
                 sortField,
                 sortOrder,
@@ -78,13 +76,10 @@ public class GameController {
             @RequestParam(value = "search", required = false) String searchKeyword,
             @RequestParam(value = "genres", required = false) List<String> genres,
             @RequestParam(value = "playerSupports", required = false) List<String> playerSupport) {
-        int convertedPageNumber, convertedPageSize;
-        try {
-            convertedPageNumber = Integer.parseInt(pageNumber);
-            convertedPageSize = Integer.parseInt(pageSize);
-        } catch (Exception e) {
-            throw new NumberFormatException("Wrong data format for page and size");
-        }
+
+        int convertedPageNumber = TypeConverter.convertStringToInt(pageNumber, "Wrong data format for page number");
+        int convertedPageSize = TypeConverter.convertStringToInt(pageSize, "Wrong data format for page size");
+
         GamesListResponseDto games = gameService.findAllActiveGames(
                 sortField,
                 sortOrder,
