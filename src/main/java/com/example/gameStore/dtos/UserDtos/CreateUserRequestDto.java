@@ -18,11 +18,14 @@ public class CreateUserRequestDto {
     @Size(max = 30, message = "Input is too long for a name")
     private String name;
 
+    @NotNull
     @Email(message = "Email not valid")
     private String email;
 
+    @NotNull
     @Size(min = 8, message = "Password should be at least 8 characters long")
     private String password;
-    
+
+    @NotNull
     private String confirmPassword;
 }

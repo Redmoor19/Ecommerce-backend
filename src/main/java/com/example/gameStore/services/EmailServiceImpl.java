@@ -28,6 +28,17 @@ public class EmailServiceImpl implements EmailService {
         sendMessage(email, GET_KEYS_SUBJECT, GET_KEYS_TEXT + textKeys);
     }
 
+    public void sendMessageAccountVerification(String email, String token, String hostUrl) {
+        String message = "Please go to this url to activate your account: " + hostUrl + "/auth/verify/" + token;
+        sendMessage(email, "Account verification", message);
+    }
+
+    public void sendMessagePasswordReset(String email, String token, String hostUrl) {
+        String message = "Please go to this url to reset you password: " + hostUrl + "/auth/verify/" + token + "\n " +
+                "This link is only valid for 15 minutes";
+        sendMessage(email, "Password reset", message);
+    }
+
     private void sendMessage(String email, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("fake.game.store.app@gmail.com");
