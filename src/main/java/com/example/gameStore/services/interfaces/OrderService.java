@@ -36,4 +36,6 @@ public interface OrderService {
     Optional<OrderDto> createNewOrder(Optional<UserDto> userDto);
 
     Optional<OrderDto> createNewOrder(User user);
+
+    void declineAllOrdersIfDelay();
 }

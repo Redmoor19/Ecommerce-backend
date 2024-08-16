@@ -35,6 +35,7 @@ public class SecurityConfiguration {
                         .requestMatchers("api/v1/games/keys/**").hasAuthority(UserRole.ADMIN.name())
                         .requestMatchers(HttpMethod.GET, "api/v1/games/**").permitAll()
                         .requestMatchers("api/v1/games/reviews/**").hasAnyAuthority(UserRole.ADMIN.name(), UserRole.USER.name())
+                        .requestMatchers("api/v1/auth/verify/**").hasAnyAuthority(UserRole.ADMIN.name(), UserRole.USER.name())
                         .requestMatchers("api/v1/games/**").hasAuthority(UserRole.ADMIN.name())
                         .requestMatchers("api/v1/users/me/**").hasAnyAuthority(UserRole.ADMIN.name(), UserRole.USER.name())
                         .requestMatchers("api/v1/users/**").hasAuthority(UserRole.ADMIN.name())
@@ -45,7 +46,10 @@ public class SecurityConfiguration {
                 .userDetailsService(userDetailsService)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(customHttp403ForbiddenEntryPoint()));
+                .exceptionHandling(exceptionHandling -> {
+                    exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint());
+                    exceptionHandling.accessDeniedHandler(customAccessDeniedHandler());
+                });
         return http.build();
     }
 
@@ -60,7 +64,12 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public CustomHttp403ForbiddenEntryPoint customHttp403ForbiddenEntryPoint() {
-        return new CustomHttp403ForbiddenEntryPoint();
+    public CustomAuthenticationEntryPoint customAuthenticationEntryPoint() {
+        return new CustomAuthenticationEntryPoint();
+    }
+
+    @Bean
+    CustomAccessDeniedHandler customAccessDeniedHandler() {
+        return new CustomAccessDeniedHandler();
     }
 }

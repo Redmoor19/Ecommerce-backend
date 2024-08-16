@@ -5,4 +5,8 @@ import java.util.Map;
 
 public interface EmailService {
     void sendMessagePurchasedKeys(String email, Map<String, List<String>> keys);
+
+    void sendMessageAccountVerification(String email, String token, String hostUrl);
+
+    void sendMessagePasswordReset(String email, String token, String hostUrl);
 }

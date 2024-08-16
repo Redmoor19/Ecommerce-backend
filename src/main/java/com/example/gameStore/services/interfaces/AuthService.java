@@ -7,15 +7,16 @@ import com.example.gameStore.dtos.UserDtos.LoginUserRequestDto;
 import com.example.gameStore.dtos.UserDtos.ResetPasswordRequestDto;
 import com.example.gameStore.dtos.UserDtos.UpdatePasswordRequestDto;
 
+import javax.naming.AuthenticationException;
 import java.util.Optional;
 
 
 public interface AuthService {
-    public Optional<LoggedInUserDto> registerUser(CreateUserRequestDto newUser);
+    public Optional<LoggedInUserDto> registerUser(CreateUserRequestDto newUser, String url);
 
-    public Optional<LoggedInUserDto> logUserIn(LoginUserRequestDto userCreds);
+    public Optional<LoggedInUserDto> logUserIn(LoginUserRequestDto userCreds) throws AuthenticationException;
 
-    public Optional<String> forgotPassword(ForgotPasswordUserDto forgotPasswordUserDto);
+    public boolean forgotPassword(ForgotPasswordUserDto forgotPasswordUserDto, String hostUrl);
 
     public Optional<LoggedInUserDto> resetPassword(String resetToken, ResetPasswordRequestDto resetPasswordDto);
 
@@ -23,5 +24,5 @@ public interface AuthService {
 
     public Optional<LoggedInUserDto> verifyEmail(String token);
 
-    boolean sendVerificationToken(String userId);
+    boolean sendVerificationToken(String userId, String hostUrl);
 }
