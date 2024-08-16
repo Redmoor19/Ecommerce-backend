@@ -17,5 +17,6 @@ public class ResetPasswordRequestDto {
     private String password;
 
     @NotNull
+    @Size(min = 8, message = "Password confirm should be at least 8 characters long")
     private String confirmPassword;
 }

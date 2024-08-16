@@ -21,5 +21,6 @@ public class UpdatePasswordRequestDto {
     private String newPassword;
 
     @NotNull
+    @Size(min = 8, message = "Password confirm should be at least 8 characters long")
     private String newPasswordConfirm;
 }
