@@ -49,8 +49,8 @@ public class GameController {
             @RequestParam(value = "playerSupports", required = false) List<String> playerSupport
     ) {
 
-        int convertedPageNumber = TypeConverter.convertStringToInt(pageNumber, "Wrong data format for page and size");
-        int convertedPageSize = TypeConverter.convertStringToInt(pageSize, "Wrong data format for page and size");
+        int convertedPageNumber = TypeConverter.convertStringToInt(pageNumber, "Wrong data format for page number");
+        int convertedPageSize = TypeConverter.convertStringToInt(pageSize, "Wrong data format for page size");
 
         GamesListResponseDto games = gameService.findAllGames(
                 sortField,
@@ -77,8 +77,8 @@ public class GameController {
             @RequestParam(value = "genres", required = false) List<String> genres,
             @RequestParam(value = "playerSupports", required = false) List<String> playerSupport) {
 
-        int convertedPageNumber = TypeConverter.convertStringToInt(pageNumber, "Wrong data format for page and size");
-        int convertedPageSize = TypeConverter.convertStringToInt(pageSize, "Wrong data format for page and size");
+        int convertedPageNumber = TypeConverter.convertStringToInt(pageNumber, "Wrong data format for page number");
+        int convertedPageSize = TypeConverter.convertStringToInt(pageSize, "Wrong data format for page size");
 
         GamesListResponseDto games = gameService.findAllActiveGames(
                 sortField,
