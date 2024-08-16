@@ -3,6 +3,7 @@ package com.example.gameStore.services;
 import com.example.gameStore.dtos.OrderDtos.GameOrderDto;
 import com.example.gameStore.dtos.OrderDtos.OrderDto;
 import com.example.gameStore.dtos.OrderDtos.OrderWithUserDto;
+import com.example.gameStore.dtos.OrderDtos.PayDto;
 import com.example.gameStore.dtos.UserDtos.UserDto;
 import com.example.gameStore.entities.Game;
 import com.example.gameStore.entities.GameOrder;
@@ -199,7 +200,7 @@ public class OrderServiceImpl implements OrderService {
         return Optional.of(mapOrderToOrderDto(checkoutOrder));
     }
 
-    public Optional<OrderDto> payForOrder(String userId) {
+    public Optional<OrderDto> payForOrder(PayDto payDto, String userId) {
         Optional<User> user = userRepository.findById(TypeConverter.convertStringToUUID(userId));
         if (user.isEmpty()) {
             throw new BadRequestException("order not found by userId: " + userId);
@@ -208,9 +209,19 @@ public class OrderServiceImpl implements OrderService {
             throw new BadRequestException("User must be ACTIVE to checkout order");
         }
 
-        Optional<Order> order = orderRepository.findFirstByUserIdAndStatusAndPaymentStatus(TypeConverter.convertStringToUUID(userId), OrderStatus.PROCESSING, PaymentStatus.WAITING);
+        Optional<Order> order = orderRepository.findById(TypeConverter.convertStringToUUID(payDto.getOrderId()));
         if (order.isEmpty()) {
-            throw new BadRequestException("Current order not found by userId: " + userId);
+            throw new BadRequestException("Wrong orderId: " + payDto.getOrderId());
+        }
+        if (!order.get().getStatus().equals(OrderStatus.PROCESSING) || !order.get().getPaymentStatus().equals(PaymentStatus.WAITING)) {
+            throw new BadRequestException("You can't pay for this order");
+        }
+
+        if (!payDto.getIsPaidSuccessfully()) {
+            order.get().setPaymentStatus(PaymentStatus.UNPAID);
+            order.get().setStatus(OrderStatus.DECLINED);
+            Order unpaidOrder = orderRepository.save(order.get());
+            return Optional.of(mapOrderToOrderDto(unpaidOrder));
         }
 
         List<GameOrder> gamesOrder = gameOrderRepository.findAllByOrderId(order.get().getId());
