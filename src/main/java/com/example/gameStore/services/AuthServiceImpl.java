@@ -12,6 +12,7 @@ import com.example.gameStore.enums.UserStatus;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.AuthService;
 import com.example.gameStore.services.interfaces.EmailService;
+import com.example.gameStore.services.interfaces.OrderService;
 import com.example.gameStore.shared.TokenManager;
 import com.example.gameStore.shared.exceptions.BadRequestException;
 import com.example.gameStore.shared.exceptions.ResourceNotFoundException;
@@ -45,6 +46,8 @@ public class AuthServiceImpl implements AuthService {
     private JWTServiceImpl jwtService;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private OrderService orderService;
 
 
     public Optional<LoggedInUserDto> registerUser(CreateUserRequestDto newUser, String hostUrl) {
@@ -63,6 +66,7 @@ public class AuthServiceImpl implements AuthService {
         User savedUser = userRepository.save(user);
 
         emailService.sendMessageAccountVerification(newUser.getEmail(), activationToken, hostUrl);
+        orderService.createNewOrder(savedUser);
 
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(newUser.getEmail(), newUser.getPassword()));
 
@@ -189,9 +193,8 @@ public class AuthServiceImpl implements AuthService {
     public boolean sendVerificationToken(String id, String hostUrl) {
         UUID userId = TypeConverter.convertStringToUUID(id);
         Optional<User> optUser = userRepository.findById(userId);
-        if (optUser.isEmpty()) {
+        if (optUser.isEmpty())
             throw new ResourceNotFoundException("User not found");
-        }
 
         User user = optUser.get();
         if (user.getActiveStatus() != UserStatus.UNVERIFIED) {
