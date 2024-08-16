@@ -64,6 +64,9 @@ public class UserServiceImpl implements UserService {
         Optional<User> optUser = userRepository.findById(userId);
         if (optUser.isEmpty()) throw new ResourceNotFoundException("User with such Id not found");
         User user = optUser.get();
+        if (!user.getEmail().equals(updateUserDto.getEmail())) {
+            user.setActiveStatus(UserStatus.UNVERIFIED);
+        }
         modelMapper.map(updateUserDto, user);
         User savedUser = userRepository.save(user);
         return Optional.of(modelMapper.map(savedUser, UserDto.class));
@@ -115,7 +118,7 @@ public class UserServiceImpl implements UserService {
     public boolean removeFavouriteGame(String userId, String gameId) {
         UUID userUUID = TypeConverter.convertStringToUUID(userId);
         UUID gameUUID = TypeConverter.convertStringToUUID(gameId);
-        
+
         return favouriteUserGameRepository.deleteUserFavourite(userUUID, gameUUID) > 0;
     }
 }

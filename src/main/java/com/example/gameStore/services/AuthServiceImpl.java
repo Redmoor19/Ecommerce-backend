@@ -11,8 +11,12 @@ import com.example.gameStore.entities.User;
 import com.example.gameStore.enums.UserStatus;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.AuthService;
+import com.example.gameStore.services.interfaces.EmailService;
 import com.example.gameStore.services.interfaces.OrderService;
 import com.example.gameStore.shared.TokenManager;
+import com.example.gameStore.shared.exceptions.BadRequestException;
+import com.example.gameStore.shared.exceptions.ResourceNotFoundException;
+import com.example.gameStore.utilities.TypeConverter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +25,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.naming.AuthenticationException;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
@@ -40,64 +45,59 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private JWTServiceImpl jwtService;
     @Autowired
+    private EmailService emailService;
+    @Autowired
     private OrderService orderService;
 
 
-    public Optional<LoggedInUserDto> registerUser(CreateUserRequestDto newUser) {
+    public Optional<LoggedInUserDto> registerUser(CreateUserRequestDto newUser, String hostUrl) {
         boolean passwordMatch = comparePasswords(newUser.getPassword(), newUser.getConfirmPassword());
         if (!passwordMatch) {
-            // Throw error password mismatch
-            return Optional.empty();
+            throw new BadRequestException("Password must match with password confirm");
         }
-        User user = new User();
-        modelMapper.map(newUser, user);
+        User user = modelMapper.map(newUser, User.class);
 
         String hashedPassword = passwordEncoder.encode(newUser.getPassword());
         user.setPassword(hashedPassword);
 
-        String token = TokenManager.generateRandomToken();
-        String hashedToken = TokenManager.hashToken(token);
-        user.setConfirmEmailToken(hashedToken);
+        String activationToken = TokenManager.generateRandomToken();
+        String hashedActivationToken = TokenManager.hashToken(activationToken);
+        user.setConfirmEmailToken(hashedActivationToken);
         User savedUser = userRepository.save(user);
 
+        emailService.sendMessageAccountVerification(newUser.getEmail(), activationToken, hostUrl);
         orderService.createNewOrder(savedUser);
 
-        String jwtToken = jwtService.generateToken(savedUser);
-
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(newUser.getEmail(), newUser.getPassword()));
-        // Send token to email using verification token
 
+        String jwtToken = jwtService.generateToken(savedUser);
         return Optional.of(new LoggedInUserDto(jwtToken, modelMapper.map(savedUser, UserDto.class)));
     }
 
-    public Optional<LoggedInUserDto> logUserIn(LoginUserRequestDto userCreds) {
+    public Optional<LoggedInUserDto> logUserIn(LoginUserRequestDto userCreds) throws AuthenticationException {
         Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userCreds.getEmail(), userCreds.getPassword()));
 
-        if (!auth.isAuthenticated()) return Optional.empty();
+        if (!auth.isAuthenticated()) throw new AuthenticationException("Wrong credentials");
 
         Optional<User> optUser = userRepository.findByEmail(userCreds.getEmail());
-        if (optUser.isEmpty()) {
-            //Throw error incorrect email (user not found)
-            return Optional.empty();
-        }
+        if (optUser.isEmpty()) throw new BadRequestException("No user with email: " + userCreds.getEmail() + " found");
         User user = optUser.get();
+
         String jwt = jwtService.generateToken(user);
         LoggedInUserDto loggedInUserDto = new LoggedInUserDto(jwt, modelMapper.map(user, UserDto.class));
         return Optional.of(loggedInUserDto);
     }
 
-    // This method will return boolean after email service implemented, since token will be sent to email
-    public Optional<String> forgotPassword(ForgotPasswordUserDto forgotPasswordUserDto) {
+    public boolean forgotPassword(ForgotPasswordUserDto forgotPasswordUserDto, String hostUrl) {
         String email = forgotPasswordUserDto.getEmail();
         Optional<User> optUser = userRepository.findByEmail(email);
-        if (optUser.isEmpty()) {
-            //Throw error incorrect email (user not found)
-            return Optional.empty();
-        }
+        if (optUser.isEmpty())
+            throw new BadRequestException("No user with email: " + forgotPasswordUserDto.getEmail() + " found");
         User user = optUser.get();
 
         String token = TokenManager.generateRandomToken();
-        // Email service, send an url, IMPLEMENT AFTER SERVICE IS AVAILABLE
+        emailService.sendMessagePasswordReset(forgotPasswordUserDto.getEmail(), token, hostUrl);
+
         String hashedToken = TokenManager.hashToken(token);
 
         Instant now = Instant.now();
@@ -108,26 +108,24 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordResetExpires(Timestamp.from(futureInstant));
 
         userRepository.save(user);
-        return Optional.of(token);
+        return true;
     }
 
     public Optional<LoggedInUserDto> resetPassword(String resetToken, ResetPasswordRequestDto resetPasswordDto) {
         boolean passwordMatch = comparePasswords(resetPasswordDto.getPassword(), resetPasswordDto.getConfirmPassword());
         if (!passwordMatch) {
-            // Throw error password mismatch
-            return Optional.empty();
+            throw new BadRequestException("Password must match with password confirm");
         }
 
-        String hashedToken = TokenManager.hashToken(resetToken);
-        Optional<User> optUser = userRepository.findByPasswordResetToken(hashedToken);
+        String hashedResetToken = TokenManager.hashToken(resetToken);
+        Optional<User> optUser = userRepository.findByPasswordResetToken(hashedResetToken);
         if (optUser.isEmpty()) {
-            //Throw error incorrect token user not found
-            return Optional.empty();
+            throw new ResourceNotFoundException("User not found");
         }
         User user = optUser.get();
-        if (user.getPasswordResetExpires().after(Timestamp.from(Instant.now()))) {
-            //Throw error token is expired
-            return Optional.empty();
+
+        if (user.getPasswordResetExpires().before(Timestamp.from(Instant.now()))) {
+            throw new RuntimeException("Your reset password time is expired. Please try again");
         }
 
         user.setPassword(passwordEncoder.encode(resetPasswordDto.getPassword()));
@@ -136,30 +134,37 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordResetExpires(null);
         User savedUser = userRepository.save(user);
 
-        String jwt = jwtService.generateToken(user);
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(savedUser.getUsername(), resetPasswordDto.getPassword()));
+
+        String jwt = jwtService.generateToken(savedUser);
         LoggedInUserDto loggedInUserDto = new LoggedInUserDto(jwt, modelMapper.map(savedUser, UserDto.class));
         return Optional.of(loggedInUserDto);
     }
 
-    public Optional<LoggedInUserDto> updatePassword(String userId, UpdatePasswordRequestDto updatePasswordDto) {
+    public Optional<LoggedInUserDto> updatePassword(String id, UpdatePasswordRequestDto updatePasswordDto) {
         boolean passwordMatch = comparePasswords(updatePasswordDto.getNewPassword(), updatePasswordDto.getNewPasswordConfirm());
         if (!passwordMatch) {
-            // Throw error password mismatch
-            return Optional.empty();
+            throw new BadRequestException("Password must match with password confirm");
         }
 
-        Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
+        UUID userId = TypeConverter.convertStringToUUID(id);
+        Optional<User> optUser = userRepository.findById(userId);
         if (optUser.isEmpty()) {
-            //Throw error user not found (very unlikely, but still, as John Lennon once said let it be)
-            return Optional.empty();
+            throw new ResourceNotFoundException("User not found");
         }
         User user = optUser.get();
+
+        if (!passwordEncoder.matches(updatePasswordDto.getPassword(), user.getPassword())) {
+            throw new BadRequestException("Entered password don't match old password");
+        }
 
         user.setPassword(passwordEncoder.encode(updatePasswordDto.getNewPassword()));
         user.setPasswordChangedAt(Timestamp.from(Instant.now()));
         User savedUser = userRepository.save(user);
 
-        String jwt = jwtService.generateToken(user);
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(savedUser.getUsername(), updatePasswordDto.getNewPassword()));
+
+        String jwt = jwtService.generateToken(savedUser);
         LoggedInUserDto loggedInUserDto = new LoggedInUserDto(jwt, modelMapper.map(savedUser, UserDto.class));
         return Optional.of(loggedInUserDto);
     }
@@ -169,37 +174,39 @@ public class AuthServiceImpl implements AuthService {
 
         Optional<User> optUser = userRepository.findByConfirmEmailToken(hashedToken);
         if (optUser.isEmpty()) {
-            //Throw error invalid token
-            return Optional.empty();
+            throw new ResourceNotFoundException("User not found");
         }
         User user = optUser.get();
         if (user.getActiveStatus() != UserStatus.UNVERIFIED) {
-            //Throw error user status incorrect
-            return Optional.empty();
+            throw new BadRequestException("Only unverified user can be activated");
         }
 
         user.setActiveStatus(UserStatus.ACTIVE);
         user.setConfirmEmailToken(null);
         User savedUser = userRepository.save(user);
 
-        String jwt = jwtService.generateToken(user);
+        String jwt = jwtService.generateToken(savedUser);
         LoggedInUserDto loggedInUserDto = new LoggedInUserDto(jwt, modelMapper.map(savedUser, UserDto.class));
         return Optional.of(loggedInUserDto);
     }
 
-    //No route implemented yet
-    public boolean sendVerificationToken(String userId) {
-        Optional<User> optUser = userRepository.findById(UUID.fromString(userId));
-        if (optUser.isEmpty()) {
-            //Throw error user not found
-            return false;
-        }
+    public boolean sendVerificationToken(String id, String hostUrl) {
+        UUID userId = TypeConverter.convertStringToUUID(id);
+        Optional<User> optUser = userRepository.findById(userId);
+        if (optUser.isEmpty())
+            throw new ResourceNotFoundException("User not found");
+
         User user = optUser.get();
+        if (user.getActiveStatus() != UserStatus.UNVERIFIED) {
+            throw new BadRequestException("User status incorrect. Should be UNVERIFIED to activate");
+        }
 
         String token = TokenManager.generateRandomToken();
         String hashedToken = TokenManager.hashToken(token);
         user.setConfirmEmailToken(hashedToken);
-        // Email service, send an url, IMPLEMENT AFTER SERVICE IS AVAILABLE
+        userRepository.save(user);
+
+        emailService.sendMessageAccountVerification(user.getEmail(), token, hostUrl);
 
         return true;
     }

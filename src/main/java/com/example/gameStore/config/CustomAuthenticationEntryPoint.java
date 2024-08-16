@@ -11,16 +11,16 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 
 import java.io.IOException;
 
-public class CustomHttp403ForbiddenEntryPoint implements AuthenticationEntryPoint {
+public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        response.setStatus(403);
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json");
 
-        GlobalResponse<Void> body = new GlobalResponse<>(HttpStatus.FORBIDDEN.value(), "Access denied");
+        GlobalResponse<Void> body = new GlobalResponse<>(HttpStatus.UNAUTHORIZED.value(), authException.getMessage());
         response.getWriter().write(objectMapper.writeValueAsString(body));
     }
 }

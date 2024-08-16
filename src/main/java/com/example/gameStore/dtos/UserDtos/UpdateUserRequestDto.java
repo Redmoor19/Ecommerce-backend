@@ -20,11 +20,12 @@ public class UpdateUserRequestDto {
     @Size(max = 30, message = "Input is too long for a name")
     private String name;
 
+    @NotNull
     @Email(message = "Email not valid")
     private String email;
 
     private LocalDate birthDate;
-    
+
     private String address;
 
     private String phone;
