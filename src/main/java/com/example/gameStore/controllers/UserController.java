@@ -62,13 +62,13 @@ public class UserController {
     @DeleteMapping("/{userId}")
     public ResponseEntity<GlobalResponse<Void>> removeUser(@PathVariable String userId) {
         if (!userService.deleteUser(userId)) throw new ResourceNotFoundException("User with such Id not found");
-        return ResponseEntity.status(204).build();
+        return ResponseEntity.ok(new GlobalResponse<>(null));
     }
 
     @PostMapping("/activate/{userId}")
-    public ResponseEntity<Void> activateUser(@PathVariable String userId) {
+    public ResponseEntity<GlobalResponse<Void>> activateUser(@PathVariable String userId) {
         if (!userService.activateUser(userId)) throw new ResourceNotFoundException("User with such Id not found");
-        return ResponseEntity.status(204).build();
+        return ResponseEntity.ok(new GlobalResponse<>(null));
     }
 
     @PatchMapping("/{userId}")
@@ -83,7 +83,7 @@ public class UserController {
     public ResponseEntity<GlobalResponse<Void>> updateUserRole(@PathVariable String userId, @RequestBody @Valid UpdateUserRoleRequestDto roleDto) {
         if (!userService.updateUserRole(roleDto, userId))
             throw new ResourceNotFoundException("User with such Id not found");
-        return ResponseEntity.status(204).build();
+        return ResponseEntity.ok(new GlobalResponse<>(null));
     }
 
     @GetMapping("/me")
@@ -96,10 +96,10 @@ public class UserController {
     }
 
     @DeleteMapping("/me")
-    public ResponseEntity<Void> removeLoggedInUser(HttpServletRequest request) {
+    public ResponseEntity<GlobalResponse<Void>> removeLoggedInUser(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         if (!userService.deleteUser(userId)) throw new ResourceNotFoundException("User with such Id not found");
-        return ResponseEntity.status(204).build();
+        return ResponseEntity.ok(new GlobalResponse<>(null));
     }
 
     @PatchMapping("/me")
@@ -122,13 +122,13 @@ public class UserController {
     public ResponseEntity<GlobalResponse<Void>> addUserFavourite(HttpServletRequest request, @PathVariable String gameId) {
         String userId = (String) request.getAttribute("userId");
         if (!userService.addFavouriteGame(userId, gameId)) throw new RuntimeException("Something went wrong");
-        return ResponseEntity.status(204).build();
+        return ResponseEntity.ok(new GlobalResponse<>(null));
     }
 
     @DeleteMapping("/me/games/favourites/{gameId}")
     public ResponseEntity<GlobalResponse<Void>> deleteUserFavourite(HttpServletRequest request, @PathVariable String gameId) {
         String userId = (String) request.getAttribute("userId");
         if (!userService.removeFavouriteGame(userId, gameId)) throw new RuntimeException("Something went wrong");
-        return ResponseEntity.status(204).build();
+        return ResponseEntity.ok(new GlobalResponse<>(null));
     }
 }

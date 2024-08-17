@@ -52,7 +52,7 @@ public class AuthController {
         if (!authService.forgotPassword(forgotPasswordUserDto, request.getRemoteHost())) {
             throw new RuntimeException("Something went wrong");
         }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new GlobalResponse<>(null));
     }
 
     @PatchMapping("auth/reset-password/{token}")
@@ -86,6 +86,6 @@ public class AuthController {
         if (!authService.sendVerificationToken(userId, request.getRemoteHost())) {
             throw new RuntimeException("Something went wrong");
         }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new GlobalResponse<>(null));
     }
 }

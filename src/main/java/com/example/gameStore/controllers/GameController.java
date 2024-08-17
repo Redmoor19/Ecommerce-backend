@@ -14,11 +14,10 @@ import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
 import com.example.gameStore.services.interfaces.GameService;
 import com.example.gameStore.shared.exceptions.ResourceNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
 import com.example.gameStore.utilities.TypeConverter;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,9 +63,6 @@ public class GameController {
                 genres,
                 playerSupport
         );
-        if (games.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
         return ResponseEntity.ok(new GlobalResponse<>(games));
     }
 
@@ -91,9 +87,6 @@ public class GameController {
                 searchKeyword,
                 genres,
                 playerSupport);
-        if (games.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
         return ResponseEntity.ok(new GlobalResponse<>(games));
     }
 
