@@ -109,6 +109,8 @@ public class OrderServiceImpl implements OrderService {
         if (game.isEmpty()) throw new BadRequestException("Game not found by id: " + gameId);
         if (order.isEmpty()) throw new BadRequestException("order not found by userId: " + userId);
 
+        if (!game.get().isActive()) throw new BadRequestException("Game found but it isn't ACTIVE, gameId: " + gameId);
+
         order.get().setTotalPrice(order.get().getTotalPrice() + game.get().getPrice());
         order.get().setUpdatedAt(Timestamp.from(Instant.now()));
         orderRepository.save(order.get());
@@ -190,6 +192,9 @@ public class OrderServiceImpl implements OrderService {
             throw new BadRequestException("There is no game in Current Order of User with userId: " + userId);
         }
         for (GameOrder gameOrder : gamesOrder) {
+            if (!gameOrder.getGame().isActive()) {
+                throw new BadRequestException("Game in order is not ACTIVE: " + gameOrder.getGame().getName());
+            }
             if (gameOrder.getGame().getQuantity() < gameOrder.getQuantity()) {
                 throw new ResourceNotFoundException("Not enough quantity of game: " + gameOrder.getGame().getName());
             }
@@ -233,6 +238,9 @@ public class OrderServiceImpl implements OrderService {
             throw new BadRequestException("There is no game in Current Order of User with userId: " + userId);
         }
         for (GameOrder gameOrder : gamesOrder) {
+            if (!gameOrder.getGame().isActive()) {
+                throw new BadRequestException("Game in order is not ACTIVE: " + gameOrder.getGame().getName());
+            }
             if (gameOrder.getGame().getQuantity() < gameOrder.getQuantity()) {
                 throw new ResourceNotFoundException("Not enough quantity of game: " + gameOrder.getGame().getName());
             }
