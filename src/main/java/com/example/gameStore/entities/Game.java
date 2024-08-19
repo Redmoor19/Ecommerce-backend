@@ -2,7 +2,7 @@ package com.example.gameStore.entities;
 
 import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
- import com.example.gameStore.utilities.GameUtilities;
+import com.example.gameStore.utilities.GameUtilities;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
@@ -49,7 +49,7 @@ public class Game {
     private int quantity;
 
     @Column(name = "thumbnail", nullable = false)
-    private String thumbnail = "https://media.istockphoto.com/id/1409329028/vector/no-picture-available-placeholder-thumbnail-icon-illustration-design.jpg?s=612x612&w=0&k=20&c=_zOuJu755g2eEUioiOUdz_mHKJQJn-tDgIAhQzyeKUQ=";
+    private String thumbnail = "https://res.cloudinary.com/df5iprard/image/upload/v1723707873/2024-08-15_104400_j19p5p.png";
 
     @Column(name = "image", columnDefinition = "TEXT[]")
     private List<String> images;
