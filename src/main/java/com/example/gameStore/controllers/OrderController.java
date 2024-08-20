@@ -84,9 +84,8 @@ public class OrderController {
                 .orElseThrow(() -> new ResourceNotFoundException("No order found"));
     }
 
-    @GetMapping("/orders/user")
-    public ResponseEntity<GlobalResponse<List<OrderDto>>> findOrderByUserId(HttpServletRequest request) {
-        String userId = (String) request.getAttribute("userId");
+    @GetMapping("/orders/user/{id}")
+    public ResponseEntity<GlobalResponse<List<OrderDto>>> findOrderByUserId(@PathVariable(required = true, name = "id") String userId) {
         List<OrderDto> orders = orderService.findOrdersByUser(userId);
         if (orders.isEmpty()) {
             throw new ResourceNotFoundException("No order found by user id: " + userId);
@@ -95,13 +94,12 @@ public class OrderController {
     }
 
     @PostMapping("users/me/orders/current/game/{id}")
-    public ResponseEntity<GlobalResponse<Void>> addGameToOrder(HttpServletRequest request,
-                                                               @PathVariable(required = true, name = "id") String id) {
+    public ResponseEntity<GlobalResponse<OrderDto>> addGameToOrder(HttpServletRequest request,
+                                                                   @PathVariable(required = true, name = "id") String id) {
         String userId = (String) request.getAttribute("userId");
-        if (!orderService.addGameToOrder(id, userId)) {
-            throw new BadRequestException("Something went wrong");
-        }
-        return ResponseEntity.ok(new GlobalResponse<>(null));
+        return orderService.addGameToOrder(id, userId)
+                .map(o -> ResponseEntity.ok(new GlobalResponse<>(o)))
+                .orElseThrow(() -> new BadRequestException("Something went wrong"));
     }
 
     @DeleteMapping("users/me/orders/current/game/{id}")

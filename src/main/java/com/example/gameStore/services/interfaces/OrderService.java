@@ -23,7 +23,7 @@ public interface OrderService {
 
     Optional<OrderDto> findCurrentOrderByUser(String userId);
 
-    boolean addGameToOrder(String gameId, String userId);
+    Optional<OrderDto> addGameToOrder(String gameId, String userId);
 
     Optional<OrderDto> deleteGameFromOrder(String gameId, String userId);
 
