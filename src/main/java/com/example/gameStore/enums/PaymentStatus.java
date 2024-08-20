@@ -7,7 +7,6 @@ public enum PaymentStatus {
     WAITING("WAITING"),
     PAID("PAID"),
     REJECTED("REJECTED"),
-    REFUNDED("REFUNDED"),
     UNPAID("UNPAID");
 
     private final String name;

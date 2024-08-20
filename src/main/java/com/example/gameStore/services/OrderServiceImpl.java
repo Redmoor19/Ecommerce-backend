@@ -332,9 +332,8 @@ public class OrderServiceImpl implements OrderService {
         orders.forEach(order -> {
             System.out.println(order.getId());
             if (order.getUpdatedAt().before(Timestamp.from(Instant.now().minusSeconds(60 * 30)))) {
-                System.out.println("Declined");
                 order.setStatus(OrderStatus.DECLINED);
-                order.setPaymentStatus(PaymentStatus.UNPAID);
+                order.setPaymentStatus(PaymentStatus.REJECTED);
                 order.setUpdatedAt(Timestamp.from(Instant.now()));
                 orderRepository.save(order);
             }

@@ -7,10 +7,7 @@ public enum OrderStatus {
     PROCESSING("PROCESSING"),
     APPROVED("APPROVED"),
     DECLINED("DECLINED"),
-    DELIVERING("DELIVERING"),
-    DELIVERED("DELIVERED"),
-    RETURNING("RETURNING"),
-    RETURNED("RETURNED");
+    DELIVERED("DELIVERED");
 
     private final String name;
 
