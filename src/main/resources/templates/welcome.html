@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Email</title>
+    <style>
+        /* General styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border: 1px solid #dddddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(to top left, #231557, #44107a, #ff1361);
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 20px;
+            color: #333333;
+        }
+        .content a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 20px 0;
+            font-size: 16px;
+            color: #ffffff;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 4px;
+            background: linear-gradient(to top left, #231557, #44107a, #ff1361);
+        }
+        .footer {
+            background-color: #f4f4f4;
+            padding: 20px;
+            text-align: center;
+            color: #666666;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Fake Game Store App</h1>
+    </div>
+
+    <div class="content">
+        <p>Dear <span th:text="${username}"></span>,</p>
+        <p>Welcome to Fake Game Store App! We are excited to have you on board.</p>
+        <p>Please follow the link below to verify your account and complete the registration process:</p>
+        <a th:href="${verificationLink}" target="_blank" class="button">Verify Account</a>
+    </div>
+
+    <div class="footer">
+        <p>© Fake Game Store App</p>
+        <p>This project was created for study purposes only.</p>
+    </div>
+</div>
+</body>
+</html>

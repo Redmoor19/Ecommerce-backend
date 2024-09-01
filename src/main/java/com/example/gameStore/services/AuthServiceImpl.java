@@ -65,7 +65,7 @@ public class AuthServiceImpl implements AuthService {
         user.setConfirmEmailToken(hashedActivationToken);
         User savedUser = userRepository.save(user);
 
-        emailService.sendMessageAccountVerification(newUser.getEmail(), activationToken, hostUrl);
+        emailService.sendMessageAccountVerification(savedUser, activationToken, hostUrl);
         orderService.createNewOrder(savedUser);
 
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(newUser.getEmail(), newUser.getPassword()));
@@ -96,7 +96,7 @@ public class AuthServiceImpl implements AuthService {
         User user = optUser.get();
 
         String token = TokenManager.generateRandomToken();
-        emailService.sendMessagePasswordReset(forgotPasswordUserDto.getEmail(), token, hostUrl);
+        emailService.sendMessagePasswordReset(user, token, hostUrl);
 
         String hashedToken = TokenManager.hashToken(token);
 
@@ -204,9 +204,9 @@ public class AuthServiceImpl implements AuthService {
         String token = TokenManager.generateRandomToken();
         String hashedToken = TokenManager.hashToken(token);
         user.setConfirmEmailToken(hashedToken);
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
-        emailService.sendMessageAccountVerification(user.getEmail(), token, hostUrl);
+        emailService.sendMessageAccountVerification(savedUser, token, hostUrl);
 
         return true;
     }

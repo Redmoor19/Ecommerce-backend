@@ -170,8 +170,13 @@ public class OrderServiceImpl implements OrderService {
         if (order.isEmpty()) {
             throw new BadRequestException("order not found by userId: " + userId);
         }
-        gameOrderRepository.deleteByOrderId(order.get().getId());
-        return Optional.of(mapOrderToOrderDto(order.get()));
+        Order foundOrder = order.get();
+        gameOrderRepository.deleteByOrderId(foundOrder.getId());
+
+        foundOrder.setTotalPrice(0.0);
+        Order savedOrder = orderRepository.save(foundOrder);
+
+        return Optional.of(mapOrderToOrderDto(savedOrder));
     }
 
     public Optional<OrderDto> checkoutCurrentOrder(String userId) {
@@ -252,7 +257,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order.get());
 
         Map<String, List<String>> gameKeys = getKeysByGamesOrder(gamesOrder);
-        emailService.sendMessagePurchasedKeys(user.get().getEmail(), gameKeys);
+        emailService.sendMessagePurchasedKeys(user.get(), gameKeys);
 
         order.get().setStatus(OrderStatus.DELIVERED);
         order.get().setUpdatedAt(Timestamp.from(Instant.now()));

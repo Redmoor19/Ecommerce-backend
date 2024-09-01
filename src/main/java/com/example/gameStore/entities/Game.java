@@ -20,7 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,7 +36,7 @@ public class Game {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "name", unique = true, nullable = false, columnDefinition = "VARCHAR(50)")
+    @Column(name = "name", unique = true, nullable = false, length = 100)
     private String name;
 
     @ElementCollection(targetClass = Genre.class)
@@ -57,10 +57,10 @@ public class Game {
     @Column(name = "developer", nullable = false)
     private String developer;
 
-    @Column(name = "release_date", nullable = false, columnDefinition = "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP")
-    private Timestamp releaseDate;
+    @Column(name = "release_date", nullable = false)
+    private LocalDate releaseDate;
 
-    @Column(name = "system_requirements", nullable = false)
+    @Column(name = "system_requirements", nullable = false, columnDefinition = "TEXT")
     private String systemRequirements;
 
     @ElementCollection(targetClass = PlayerSupport.class)
@@ -72,7 +72,7 @@ public class Game {
     @Column(name = "price", columnDefinition = "NUMERIC(10, 2)")
     private float price;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "sku", nullable = false, unique = true)

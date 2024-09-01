@@ -20,6 +20,7 @@ import com.example.gameStore.shared.exceptions.ResourceNotFoundException;
 import com.example.gameStore.utilities.TypeConverter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,6 +36,8 @@ public class UserServiceImpl implements UserService {
     private FavouriteUserGameRepository favouriteUserGameRepository;
     @Autowired
     private GameRepository gameRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private final ModelMapper modelMapper = new ModelMapper();
 
@@ -55,6 +58,7 @@ public class UserServiceImpl implements UserService {
             throw new ResourceAlreadyExistsException("User with " + newUser.getEmail() + " already exists");
 
         User user = modelMapper.map(newUser, User.class);
+        user.setPassword(passwordEncoder.encode(newUser.getPassword()));
         User createdUser = userRepository.save(user);
         return Optional.of(modelMapper.map(createdUser, UserDto.class));
     }

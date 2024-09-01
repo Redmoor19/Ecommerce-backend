@@ -16,7 +16,7 @@ public enum PlayerSupport {
 
     LAN("LAN"),
 
-    LOCAL_AND_PARTY("LOCAL&PARTY"),
+    LOCAL_AND_PARTY("LOCAL_AND_PARTY"),
 
     MMO("MMO"),
 

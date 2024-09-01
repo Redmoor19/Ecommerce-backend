@@ -6,6 +6,7 @@ import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.GamesListResponseDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
+import com.example.gameStore.dtos.GameDtos.UpdateGameStatusDto;
 import com.example.gameStore.dtos.GlobalResponse;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
 import com.example.gameStore.dtos.ReviewDtos.CreateOrUpdateReviewRequestDto;
@@ -114,19 +115,20 @@ public class GameController {
                 .orElseThrow(() -> new RuntimeException("Failed to update game"));
     }
 
-    @PatchMapping("games/deactivation/{gameId}")
-    public ResponseEntity<GlobalResponse<GameDto>> deactivateGame(@PathVariable String gameId) {
-        Optional<GameDto> game = gameService.deactivateGame(gameId);
-        return game
-                .map(deactivatedGame -> ResponseEntity.ok(new GlobalResponse<>(deactivatedGame)))
-                .orElseThrow(() -> new ResourceNotFoundException("Game with such Id not found"));
-    }
+    @PatchMapping("games/status/{gameId}")
+    public ResponseEntity<GlobalResponse<GameDto>> deactivateGame(@PathVariable String gameId, @RequestBody UpdateGameStatusDto gameStatusDto) {
+        String status = gameStatusDto.getStatus();
+        Optional<GameDto> game;
+        if (status.equals("DEACTIVATE")) {
+            game = gameService.deactivateGame(gameId);
+        } else if (status.equals("ACTIVATE")) {
+            game = gameService.activateGame(gameId);
+        } else {
+            throw new IllegalArgumentException(status + "is not permitted game status");
+        }
 
-    @PatchMapping("games/activation/{gameId}")
-    public ResponseEntity<GlobalResponse<GameDto>> activateGame(@PathVariable String gameId) {
-        Optional<GameDto> game = gameService.activateGame(gameId);
         return game
-                .map(activatedGame -> ResponseEntity.ok(new GlobalResponse<>(activatedGame)))
+                .map(updatedGame -> ResponseEntity.ok(new GlobalResponse<>(updatedGame)))
                 .orElseThrow(() -> new ResourceNotFoundException("Game with such Id not found"));
     }
 

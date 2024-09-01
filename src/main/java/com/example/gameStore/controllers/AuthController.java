@@ -33,7 +33,7 @@ public class AuthController {
 
     @PostMapping("auth/signup")
     public ResponseEntity<GlobalResponse<LoggedInUserDto>> signUpUser(@RequestBody @Valid CreateUserRequestDto createUserRequestDto, HttpServletRequest request) {
-        Optional<LoggedInUserDto> optionalLoggedInUserDto = authService.registerUser(createUserRequestDto, request.getRemoteHost());
+        Optional<LoggedInUserDto> optionalLoggedInUserDto = authService.registerUser(createUserRequestDto, request.getHeader("Origin"));
         return optionalLoggedInUserDto
                 .map(loggedInUserDto -> ResponseEntity.ok(new GlobalResponse<>(loggedInUserDto)))
                 .orElseThrow(() -> new RuntimeException("Something went wrong"));
@@ -49,7 +49,7 @@ public class AuthController {
 
     @PostMapping("auth/forgot-password")
     public ResponseEntity<GlobalResponse<Void>> forgotUserPassword(@RequestBody @Valid ForgotPasswordUserDto forgotPasswordUserDto, HttpServletRequest request) {
-        if (!authService.forgotPassword(forgotPasswordUserDto, request.getRemoteHost())) {
+        if (!authService.forgotPassword(forgotPasswordUserDto, request.getHeader("Origin"))) {
             throw new RuntimeException("Something went wrong");
         }
         return ResponseEntity.ok(new GlobalResponse<>(null));
@@ -83,7 +83,7 @@ public class AuthController {
     @PostMapping("auth/verify/send-mail")
     public ResponseEntity<GlobalResponse<Void>> sendVerificationToken(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
-        if (!authService.sendVerificationToken(userId, request.getRemoteHost())) {
+        if (!authService.sendVerificationToken(userId, request.getHeader("Origin"))) {
             throw new RuntimeException("Something went wrong");
         }
         return ResponseEntity.ok(new GlobalResponse<>(null));
