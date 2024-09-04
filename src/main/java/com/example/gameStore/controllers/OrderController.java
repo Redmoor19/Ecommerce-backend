@@ -1,6 +1,7 @@
 package com.example.gameStore.controllers;
 
 import com.example.gameStore.dtos.GlobalResponse;
+import com.example.gameStore.dtos.OrderDtos.AllOrdersDto;
 import com.example.gameStore.dtos.OrderDtos.OrderDto;
 import com.example.gameStore.dtos.OrderDtos.OrderWithUserDto;
 import com.example.gameStore.dtos.OrderDtos.PayDto;
@@ -33,11 +34,8 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping("orders")
-    public ResponseEntity<GlobalResponse<List<OrderDto>>> findAllOrders() {
-        List<OrderDto> orders = orderService.findAllOrders();
-        if (orders.isEmpty()) {
-            throw new ResourceNotFoundException("No orders found");
-        }
+    public ResponseEntity<GlobalResponse<AllOrdersDto>> findAllOrders() {
+        AllOrdersDto orders = orderService.findAllOrders();
         return ResponseEntity.ok(new GlobalResponse<>(orders));
     }
 

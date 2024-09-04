@@ -1,5 +1,7 @@
 package com.example.gameStore.services;
 
+import com.example.gameStore.dtos.GameDtos.MostPopularGamesDto;
+import com.example.gameStore.dtos.OrderDtos.AllOrdersDto;
 import com.example.gameStore.dtos.OrderDtos.GameOrderDto;
 import com.example.gameStore.dtos.OrderDtos.OrderDto;
 import com.example.gameStore.dtos.OrderDtos.OrderWithUserDto;
@@ -32,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.naming.AuthenticationException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -57,11 +60,19 @@ public class OrderServiceImpl implements OrderService {
 
     private final ModelMapper modelMapper = new ModelMapper();
 
-    public List<OrderDto> findAllOrders() {
+    public AllOrdersDto findAllOrders() {
         List<Order> orders = orderRepository.findAll();
-        return orders.stream()
+
+        List<MostPopularGamesDto> mostPopularGames = gameOrderRepository.getMostPurchasedLastMonth(Timestamp.valueOf(LocalDateTime.now().minusDays(30)));
+
+        Map<String, Integer> gamePurchaseMap = new HashMap<>();
+        mostPopularGames.forEach(dto -> gamePurchaseMap.put(dto.getName(), Math.toIntExact(dto.getTotalQuantity())));
+
+        Double totalPrice = gameOrderRepository.getTotalPriceLastMonth();
+        List<OrderDto> orderDtos = orders.stream()
                 .map(this::mapOrderToOrderDto)
                 .toList();
+        return new AllOrdersDto(orderDtos, gamePurchaseMap, totalPrice);
     }
 
     public List<OrderWithUserDto> findAllExtendedOrders() {

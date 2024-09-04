@@ -4,6 +4,7 @@ package com.example.gameStore.controllers;
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.GamesListResponseDto;
+import com.example.gameStore.dtos.GameDtos.MostPopularGamesDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameStatusDto;
@@ -197,6 +198,12 @@ public class GameController {
         return keysAmountOpt
                 .map(keysAmount -> ResponseEntity.ok(new GlobalResponse<>(keysAmount)))
                 .orElseThrow(() -> new ResourceNotFoundException("Game with such Id not found"));
+    }
+
+    @GetMapping("games/most-popular")
+    public ResponseEntity<GlobalResponse<List<MostPopularGamesDto>>> getMostPopularGames() {
+        List<MostPopularGamesDto> mostPopularGames = gameService.getMostPopularGames();
+        return ResponseEntity.ok(new GlobalResponse<>(mostPopularGames));
     }
 
 }

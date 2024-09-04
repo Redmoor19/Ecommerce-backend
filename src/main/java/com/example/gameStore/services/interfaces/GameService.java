@@ -3,6 +3,7 @@ package com.example.gameStore.services.interfaces;
 import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.GamesListResponseDto;
+import com.example.gameStore.dtos.GameDtos.MostPopularGamesDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
@@ -42,4 +43,6 @@ public interface GameService {
     Optional<KeyCreationDto> addKeyToGame(String gameId);
 
     Optional<Integer> countGameKeys(String gameId);
+
+    List<MostPopularGamesDto> getMostPopularGames();
 }

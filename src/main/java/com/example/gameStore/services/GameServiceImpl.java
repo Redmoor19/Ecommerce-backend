@@ -4,6 +4,7 @@ import com.example.gameStore.dtos.GameDtos.CreateGameRequestDto;
 import com.example.gameStore.dtos.GameDtos.GameDto;
 import com.example.gameStore.dtos.GameDtos.GamesListHeaderDto;
 import com.example.gameStore.dtos.GameDtos.GamesListResponseDto;
+import com.example.gameStore.dtos.GameDtos.MostPopularGamesDto;
 import com.example.gameStore.dtos.GameDtos.SingleGameWithReviewsDto;
 import com.example.gameStore.dtos.GameDtos.UpdateGameRequestDto;
 import com.example.gameStore.dtos.KeyDto.KeyCreationDto;
@@ -16,13 +17,13 @@ import com.example.gameStore.entities.Review;
 import com.example.gameStore.entities.User;
 import com.example.gameStore.enums.Genre;
 import com.example.gameStore.enums.PlayerSupport;
+import com.example.gameStore.repositories.GameOrderRepository;
 import com.example.gameStore.repositories.GameRepository;
 import com.example.gameStore.repositories.KeyRepository;
 import com.example.gameStore.repositories.ReviewRepository;
 import com.example.gameStore.repositories.UserRepository;
 import com.example.gameStore.services.interfaces.GameService;
 import com.example.gameStore.shared.exceptions.BadRequestException;
-import com.example.gameStore.shared.exceptions.NoContentException;
 import com.example.gameStore.shared.exceptions.ResourceNotFoundException;
 import com.example.gameStore.utilities.GameSpecification;
 import com.example.gameStore.utilities.TypeConverter;
@@ -37,8 +38,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -56,6 +60,8 @@ public class GameServiceImpl implements GameService {
     private ReviewRepository reviewRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private GameOrderRepository gameOrderRepository;
 
     private static <E extends Enum<E>> boolean areNotEnumListsEquals(List<E> list1, List<E> list2) {
         if (list1.size() != list2.size()) {
@@ -289,6 +295,12 @@ public class GameServiceImpl implements GameService {
     @Override
     public Optional<Integer> countGameKeys(String gameId) {
         return gameRepository.getGameKeysAmount(TypeConverter.convertStringToUUID(gameId));
+    }
+
+    public List<MostPopularGamesDto> getMostPopularGames() {
+        List<MostPopularGamesDto> popularGamesDtos = gameOrderRepository.getMostPurchasedLastMonth(Timestamp.valueOf(LocalDateTime.now().minusDays(30)));
+        return popularGamesDtos.stream().sorted(Comparator.comparingLong(MostPopularGamesDto::getTotalQuantity).reversed()).limit(5).toList();
+
     }
 
     private void updateGameRating(Game game) {

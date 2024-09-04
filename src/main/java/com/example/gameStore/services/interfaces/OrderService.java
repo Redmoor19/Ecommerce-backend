@@ -1,5 +1,6 @@
 package com.example.gameStore.services.interfaces;
 
+import com.example.gameStore.dtos.OrderDtos.AllOrdersDto;
 import com.example.gameStore.dtos.OrderDtos.OrderDto;
 import com.example.gameStore.dtos.OrderDtos.OrderWithUserDto;
 import com.example.gameStore.dtos.OrderDtos.PayDto;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderService {
-    List<OrderDto> findAllOrders();
+    AllOrdersDto findAllOrders();
 
     List<OrderWithUserDto> findAllExtendedOrders();
 

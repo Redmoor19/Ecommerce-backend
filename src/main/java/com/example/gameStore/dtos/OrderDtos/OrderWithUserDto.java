@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Getter
@@ -16,6 +17,7 @@ public class OrderWithUserDto {
     private String id;
     private UserDto user;
     private Double totalPrice;
+    private Timestamp updatedAt;
     private String createdAt;
     private String status;
     private String paymentStatus;

@@ -21,6 +21,7 @@ public class OrderDto {
     private UUID userId;
     private Double totalPrice;
     private Timestamp createdAt;
+    private Timestamp updatedAt;
     private OrderStatus status;
     private PaymentStatus paymentStatus;
     private List<GameOrderDto> games;
